@@ -10,15 +10,17 @@ trait Semantics extends Core with Model with Language:
   private val ELSE_KEY = 2
   private val NBR_KEY = 0
 
-  private def alignWithNeighbors[T](path: Seq[Any])(mapper: NeighborInfo => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
-    ctx.neighbors
-      .map(_.filter { case (_, n) => n.exported.followPath(path).isDefined })
-      .map(_.map { case (d, n) => (d, mapper(n)) })
+  private def alignWithNeighbors[T](path: Seq[Any])(mapper: (Export[Any], NeighborInfo) => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
+    ctx.neighbors.map { nbrs =>
+      nbrs
+        .flatMap { case (d, n) => n.exported.followPath(path).map(x => (d, (x, n))) }
+        .map { case (d, (e, n)) => (d, mapper(e, n)) }
+    }
 
   override def mid: Flow[DeviceId] = Flow.constant(summon[Context].selfId)
 
   override def nbr[A](a: Flow[A]): Flow[NeighborField[A]] = Flow { path =>
-    val neighboringValues = alignWithNeighbors(path)(_.exported.root.asInstanceOf[A])
+    val neighboringValues = alignWithNeighbors(path)((e, _) => e.root.asInstanceOf[A])
     lift(a.exports(path :+ NBR_KEY), neighboringValues){ (x, n) =>
       val neighborField = NeighborField(n + (summon[Context].selfId -> x.root))
       Export.wrapper(neighborField, NBR_KEY, x)
@@ -44,8 +46,8 @@ trait Semantics extends Core with Model with Language:
   }
 
   override def nbrSensor[A](id: SensorId): Flow[NeighborField[A]] = Flow { path =>
-    val alignedNeighbors = alignWithNeighbors(path) {
-      _.sensor[A](id) match
+    val alignedNeighbors = alignWithNeighbors(path) { (_, n) =>
+      n.sensor[A](id) match
         case Some(v) => v
         case _ => throw new IllegalArgumentException(s"Neighboring sensor with ID $id is not available")
     }
