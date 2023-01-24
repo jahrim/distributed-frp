@@ -21,4 +21,4 @@ trait Model:
     def fold[B](init: => B)(f: (B, A) => B): B
 
   object NeighborField:
-    def apply[A](self: Export[A], neighborsExports: Map[DeviceId, Export[Any]]): NeighborField[A] = ???
+    def apply[A](neighborsExports: Map[DeviceId, A]): NeighborField[A] = ???

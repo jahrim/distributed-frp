@@ -1,24 +1,28 @@
 package it.unibo.distributedfrp.core
 
-import nz.sodium.Cell
-import it.unibo.distributedfrp.frp.CellExtensions._
+import nz.sodium.{Cell, CellLoop}
+import it.unibo.distributedfrp.utils.Lift._
+import it.unibo.distributedfrp.frp.FrpGivens.given
 
 trait Semantics extends Core with Model with Language:
-  extension (ctx: Context)
-    private def alignedNeighbors(path: Seq[Any]): Cell[Map[DeviceId, Export[Any]]] =
-      ctx.neighbors.map(_.flatMap { case (d, n) => n.exported.followPath(path).map((d, _)) })
+  private val CONDITION_KEY = 0
+  private val THEN_KEY = 1
+  private val ELSE_KEY = 2
+  private val NBR_KEY = 0
 
-  val CONDITION_KEY = 0
-  val THEN_KEY = 1
-  val ELSE_KEY = 2
-  val NBR_KEY = 0
+  private def alignWithNeighbors[T](path: Seq[Any])(mapper: NeighborInfo => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
+    ctx.neighbors
+      .map(_.filter { case (_, n) => n.exported.followPath(path).isDefined })
+      .map(_.map { case (d, n) => (d, mapper(n)) })
 
   override def mid: Flow[DeviceId] = Flow.constant(summon[Context].selfId)
 
   override def nbr[A](a: Flow[A]): Flow[NeighborField[A]] = Flow { path =>
-    val alignedNeighbors = summon[Context].alignedNeighbors(path)
-    val selfExport = a.exports(path :+ NBR_KEY)
-    selfExport.lift(alignedNeighbors, (s, n) => Export.wrapper(NeighborField(s, n), NBR_KEY, s))
+    val neighboringValues = alignWithNeighbors(path)(_.exported.root.asInstanceOf[A])
+    lift(a.exports(path :+ NBR_KEY), neighboringValues){ (x, n) =>
+      val neighborField = NeighborField(n + (summon[Context].selfId -> x.root))
+      Export.wrapper(neighborField, NBR_KEY, x)
+    }
   }
 
   override def branch[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] = Flow { path =>
@@ -33,9 +37,23 @@ trait Semantics extends Core with Model with Language:
   }
 
   override def loop[A](init: => A)(f: Flow[A] => Flow[A]): Flow[A] = Flow { path =>
-    ???
+    val cellLoop = new CellLoop[Export[A]]()
+    val cell = f(Flow(_ => cellLoop)).exports(path)
+    cellLoop.loop(cell)
+    cell
   }
 
-  override def nbrSensor[A](name: SensorId): Flow[NeighborField[A]] = ???
+  override def nbrSensor[A](id: SensorId): Flow[NeighborField[A]] = Flow { path =>
+    val alignedNeighbors = alignWithNeighbors(path) {
+      _.sensor[A](id) match
+        case Some(v) => v
+        case _ => throw new IllegalArgumentException(s"Neighboring sensor with ID $id is not available")
+    }
+    alignedNeighbors.map(n => Export.atomic(NeighborField(n)))
+  }
 
-  override def sensor[A](id: SensorId): Flow[A] = ???
+  override def sensor[A](id: SensorId): Flow[A] = Flow.fromCell {
+    summon[Context].sensor[A](id) match
+      case Some(sensor) => sensor
+      case _ => throw new IllegalArgumentException(s"Sensor with ID $id is not available")
+  }
