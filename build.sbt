@@ -4,5 +4,8 @@ ThisBuild / scalaVersion := "3.2.2"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "distributed-frp"
+    name := "distributed-frp",
+    libraryDependencies ++= Seq(
+      "nz.sodium" % "sodium" % "1.2.0"
+    )
   )
