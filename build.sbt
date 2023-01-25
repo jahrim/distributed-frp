@@ -7,6 +7,7 @@ lazy val root = (project in file("."))
     name := "distributed-frp",
     libraryDependencies ++= Seq(
       "nz.sodium" % "sodium" % "1.2.0",
-      "org.scalatest" %% "scalatest" % "3.2.15" % Test
+      "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test,
     )
   )
