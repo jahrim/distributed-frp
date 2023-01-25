@@ -6,6 +6,8 @@ trait Core:
   type DeviceId
   type SensorId
 
+  type Flow[_]
+
   trait NeighborInfo:
     def sensor[A](id: SensorId): Option[A]
     def exported: Export[Any]
@@ -13,4 +15,7 @@ trait Core:
   trait Context:
     def selfId: DeviceId
     def sensor[A](id: SensorId): Option[Cell[A]]
-    def neighbors: Cell[Map[DeviceId, NeighborInfo]]
+    def neighbors: Cell[NeighborField[NeighborInfo]]
+
+  case class NeighborField[A](neighborValues: Map[DeviceId, A])
+

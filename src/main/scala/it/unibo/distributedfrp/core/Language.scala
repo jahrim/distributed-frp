@@ -1,7 +1,7 @@
 package it.unibo.distributedfrp.core
 
 trait Language:
-  self: Core with Model =>
+  self: Core =>
 
   def nbr[A](a: Flow[A]): Flow[NeighborField[A]]
   def loop[A](f: Flow[A] => Flow[A]): Flow[A]
