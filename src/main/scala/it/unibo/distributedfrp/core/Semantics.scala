@@ -38,7 +38,7 @@ trait Semantics extends Core with Model with Language:
     })
   }
 
-  override def loop[A](init: => A)(f: Flow[A] => Flow[A]): Flow[A] = Flow { path =>
+  override def loop[A](f: Flow[A] => Flow[A]): Flow[A] = Flow { path =>
     val cellLoop = new CellLoop[Export[A]]()
     val cell = f(Flow(_ => cellLoop)).exports(path)
     cellLoop.loop(cell)
