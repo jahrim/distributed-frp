@@ -8,6 +8,5 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "nz.sodium" % "sodium" % "1.2.0",
       "org.scalatest" %% "scalatest" % "3.2.15" % Test,
-      "org.scalamock" %% "scalamock" % "5.1.0" % Test,
     )
   )
