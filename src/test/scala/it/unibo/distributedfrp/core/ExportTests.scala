@@ -67,13 +67,3 @@ class ExportTests extends AnyFlatSpec with should.Matchers:
   it should "have no children" in {
     Export.atomic(10).children shouldBe empty
   }
-
-  "A wrapper export" should "have the given root" in {
-    Export.wrapper(10, "A", Export.atomic(15)).root shouldBe 10
-  }
-
-  it should "have the given export as its only child" in {
-    val key = "A"
-    val child = Export.atomic(15)
-    Export.wrapper(10, key, child).children should be (Map(key -> child))
-  }

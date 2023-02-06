@@ -15,5 +15,3 @@ object Export:
   def apply[A](root: A, children: Map[Any, Export[Any]]): Export[A] = ExportImpl(root, children)
 
   def atomic[A](value: A): Export[A] = Export(value, Map.empty)
-
-  def wrapper[A](value: A, key: Any, child: Export[Any]): Export[A] = Export(value, Map(key -> child))

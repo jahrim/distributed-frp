@@ -6,7 +6,12 @@ trait Core:
   type DeviceId
   type SensorId
 
-  type Flow[_]
+  protected def flowOf[A](f: Context ?=> Seq[Any] => Cell[Export[A]]): Flow[A]
+  
+  trait Flow[A]:
+    def exports(path: Seq[Any])(using ctx: Context): Cell[Export[A]]
+
+  type NeighborFlow[A] = Flow[NeighborField[A]]
 
   trait NeighborInfo:
     def sensor[A](id: SensorId): Option[A]
