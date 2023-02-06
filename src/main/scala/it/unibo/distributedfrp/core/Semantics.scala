@@ -7,10 +7,10 @@ import it.unibo.distributedfrp.utils.Lift.*
 import nz.sodium.{Cell, CellLoop}
 
 trait Semantics extends Core, Language, CoreExtensions:
-  override def flowOf[A](f: Context ?=> Seq[Any] => Cell[Export[A]]): Flow[A] = new Flow[A]:
-    override def exports(path: Seq[Any])(using Context): Cell[Export[A]] = f(path)
+  override def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A] = new Flow[A]:
+    override def exports(path: Path)(using Context): Cell[Export[A]] = f(path)
 
-  private def alignWithNeighbors[T](path: Seq[Any])(f: (Export[Any], NeighborInfo) => T)(using ctx: Context): Cell[NeighborField[T]] =
+  private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborInfo) => T)(using ctx: Context): Cell[NeighborField[T]] =
     ctx.neighbors.map(_.filterMap(field => field.exported.followPath(path).map(x => f(x, field))))
 
   override def mid: Flow[DeviceId] = Flows.constant(summon[Context].selfId)
