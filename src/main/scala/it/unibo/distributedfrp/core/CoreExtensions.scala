@@ -19,11 +19,28 @@ trait CoreExtensions:
     def flatMap[B](f: A => Flow[B]): Flow[B] = ???
 
   extension[A] (field: NeighborField[A])
+    def update[B](f: Map[DeviceId, A] => Map[DeviceId, B]): NeighborField[B] =
+      NeighborField(f(field.neighborValues))
+
     def map[B](f: A => B): NeighborField[B] =
-      NeighborField(field.neighborValues.map((d, x) => (d, f(x))))
+      field.update(_.map((d, x) => (d, f(x))))
+
+    def get(neighborId: DeviceId): Option[A] = field.neighborValues.get(neighborId)
+
+    def withNeighbor(neighborId: DeviceId)(value: A): NeighborField[A] =
+      field.update(_ + (neighborId -> value))
+
+    def updateNeighbor(neighborId: DeviceId)(f: A => A): NeighborField[A] =
+      val toBeAdded = field.get(neighborId) match
+        case Some(v) => f(v)
+        case _ => throw new IllegalStateException(s"Neighbor with ID $neighborId does not exist in the current neighbor field")
+      field.update(_ + (neighborId -> toBeAdded))
+
+    def withoutNeighbor(neighborId: DeviceId): NeighborField[A] =
+      field.update(_ - neighborId)
 
     def filterMap[B](f: A => Option[B]): NeighborField[B] =
-      NeighborField(field.neighborValues.flatMap((d, x) => f(x).map((d, _))))
+      field.update(_.flatMap((d, x) => f(x).map((d, _))))
 
     def fold(seed: A)(combine: (A, A) => A): A =
       field.neighborValues.values.fold(seed)(combine)

@@ -11,7 +11,7 @@ import TestIncarnation.given
 import it.unibo.distributedfrp.utils.Lift._
 
 class Gradient extends Program[Double]:
-  override def main: Flow[Double] = gradient(sensor("source"))
+  override def main(using Context): Flow[Double] = gradient(sensor("source"))
 
   private def gradient(src: Flow[Boolean]): Flow[Double] =
     loop { distance =>

@@ -5,22 +5,17 @@ import nz.sodium._
 trait Core:
   type DeviceId
   type SensorId
+  type Context
   
   type Path = Seq[Any]
-
-  protected def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A]
   
   trait Flow[A]:
     def exports(path: Seq[Any])(using ctx: Context): Cell[Export[A]]
 
-  trait NeighborInfo:
-    def sensor[A](id: SensorId): Option[A]
-    def exported: Export[Any]
-
-  trait Context:
-    def selfId: DeviceId
-    def sensor[A](id: SensorId): Option[Cell[A]]
-    def neighbors: Cell[NeighborField[NeighborInfo]]
+  protected def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A]
 
   case class NeighborField[A](neighborValues: Map[DeviceId, A])
+
+  object NeighborField:
+    def empty[A]: NeighborField[A] = NeighborField(Map.empty)
 
