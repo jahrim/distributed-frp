@@ -3,11 +3,16 @@ package it.unibo.distributedfrp.core
 import it.unibo.distributedfrp.incarnation.Incarnation
 import nz.sodium.{Cell, CellSink}
 
-object MockIncarnation extends Incarnation:
+trait MockIncarnation extends Incarnation:
   override type DeviceId = Int
   override type SensorId = String
   override type Context = MockContext
   override type NeighborInfo = MockNeighborInfo
+
+  def initialLocalSensors(selfId: DeviceId): Map[SensorId, Any]
+  def initialNeighborSensors(selfId: DeviceId, neighborId: DeviceId): Map[SensorId, Any]
+
+  override def context(selfId: DeviceId): Context = MockContext(selfId, initialLocalSensors(selfId))
 
   case class MockNeighborInfo(exported: Export[Any], sensors: Map[SensorId, Any]) extends BasicNeighborInfo:
     override def sensor[A](id: SensorId): A = sensors(id).asInstanceOf[A]
@@ -24,8 +29,8 @@ object MockIncarnation extends Incarnation:
     def updateLocalSensor(id: SensorId)(newValue: Any): Unit =
       sensors(id).send(newValue)
 
-    def addNeighbor(neighborId: DeviceId)(exported: Export[Any], sensors: Map[SensorId, Any]): Unit =
-      updateNeighbors(_.withNeighbor(neighborId)(MockNeighborInfo(exported, sensors)))
+    def addNeighbor(neighborId: DeviceId)(exported: Export[Any]): Unit =
+      updateNeighbors(_.withNeighbor(neighborId)(MockNeighborInfo(exported, initialNeighborSensors(selfId, neighborId))))
 
     def removeNeighbor(neighborId: DeviceId): Unit =
       updateNeighbors(_.withoutNeighbor(neighborId))

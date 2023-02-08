@@ -6,12 +6,14 @@ object TestIncarnation extends Incarnation:
   override type DeviceId = Int
   override type SensorId = String
 
+  override def context(selfId: Int): Context = ???
+
 import TestIncarnation._
 import TestIncarnation.given
 import it.unibo.distributedfrp.utils.Lift._
 
 class Gradient extends Program[Double]:
-  override def main(using Context): Flow[Double] = gradient(sensor("source"))
+  override def main: Flow[Double] = gradient(sensor("source"))
 
   private def gradient(src: Flow[Boolean]): Flow[Double] =
     loop { distance =>
