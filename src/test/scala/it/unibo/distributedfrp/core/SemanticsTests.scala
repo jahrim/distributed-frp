@@ -3,7 +3,8 @@ package it.unibo.distributedfrp.core
 import org.scalatest.*
 import flatspec.*
 import matchers.*
-import nz.sodium.Cell
+import nz.sodium.{Cell, Transaction}
+import it.unibo.distributedfrp.utils.Lift.*
 
 class SemanticsTests extends AnyFlatSpec with should.Matchers:
   private val SELF_ID = 1
@@ -108,4 +109,10 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
       )
     )
     flow.exports(PATH).sample() should be (expectedExport)
+  }
+
+  "loop" should "return a flow self-dependant flow" in {
+    val s = sensor[String](LOCAL_SENSOR)
+    val flow = loop[String](x => lift(s, x)(_ + _))
+    flow.exports(PATH).sample().root should be (Export(initialSensorValues(LOCAL_SENSOR)))
   }
