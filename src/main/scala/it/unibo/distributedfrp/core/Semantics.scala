@@ -29,10 +29,10 @@ trait Semantics extends Core, Language, CoreExtensions:
 
   override def nbr[A](a: Flow[A]): Flow[NeighborField[A]] =
     flowOf { path =>
-      val neighboringValues = alignWithNeighbors(path)((e, _) => e.root.asInstanceOf[A])
+      val neighboringValues = alignWithNeighbors(path :+ ())((e, _) => e.root.asInstanceOf[A])
       lift(a.exports(path :+ ()), neighboringValues){ (x, n) =>
         val neighborField = NeighborField(n.neighborValues + (summon[Context].selfId -> x.root))
-        Export(neighborField, Map(() -> x))
+        Export(neighborField, () -> x)
       }
     }
 
@@ -43,7 +43,7 @@ trait Semantics extends Core, Language, CoreExtensions:
       val elseExport = el.exports(path :+ false)
       condExport.lift(thenExport, elseExport, (c, t, e) => {
         val selected = if c.root then t else e
-        Export(selected.root, Map(() -> c, c.root -> selected))
+        Export(selected.root, () -> c, c.root -> selected)
       })
     }
 
@@ -58,7 +58,7 @@ trait Semantics extends Core, Language, CoreExtensions:
   override def nbrSensor[A](id: SensorId): Flow[NeighborField[A]] =
     flowOf { path =>
       val alignedNeighbors = alignWithNeighbors(path)((_, n) => n.sensor[A](id))
-      alignedNeighbors.map(Export.atomic(_))
+      alignedNeighbors.map(Export(_))
     }
 
   override def sensor[A](id: SensorId): Flow[A] =

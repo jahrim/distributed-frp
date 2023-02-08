@@ -19,3 +19,5 @@ trait Core:
   object NeighborField:
     def empty[A]: NeighborField[A] = NeighborField(Map.empty)
 
+    def apply[A](pairs: (DeviceId, A)*): NeighborField[A] = NeighborField(pairs.toMap)
+

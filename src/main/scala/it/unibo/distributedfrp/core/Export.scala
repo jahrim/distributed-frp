@@ -12,6 +12,4 @@ trait Export[+A]:
 object Export:
   case class ExportImpl[+A](root: A, children: Map[Any, Export[Any]]) extends Export[A]
 
-  def apply[A](root: A, children: Map[Any, Export[Any]]): Export[A] = ExportImpl(root, children)
-
-  def atomic[A](value: A): Export[A] = Export(value, Map.empty)
+  def apply[A](root: A, children: (Any, Export[Any])*): Export[A] = ExportImpl(root, children.toMap)

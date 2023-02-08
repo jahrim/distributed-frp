@@ -8,13 +8,13 @@ import it.unibo.distributedfrp.frp.FrpGivens.given
 trait CoreExtensions:
   self: Core =>
 
-  protected object Flows:
-    def fromCell[A](cell: Context ?=> Cell[A]): Flow[A] = flowOf(_ => cell.map(Export.atomic(_)))
+  object Flows:
+    def fromCell[A](cell: Context ?=> Cell[A]): Flow[A] = flowOf(_ => cell.map(Export(_)))
 
     def constant[A](a: Context ?=> A): Flow[A] = fromCell(new Cell(a))
 
   extension[A] (flow: Flow[A])
-    def map[B](f: A => B): Flow[B] = flowOf(path => flow.exports(path :+ ()).map(e => Export(f(e.root), Map(() -> e))))
+    def map[B](f: A => B): Flow[B] = flowOf(path => flow.exports(path :+ ()).map(e => Export(f(e.root), () -> e)))
 
     def flatMap[B](f: A => Flow[B]): Flow[B] = ???
 
@@ -60,7 +60,7 @@ trait CoreExtensions:
   given Lift[Flow] with
     override def lift[A, B, C](a: Flow[A], b: Flow[B])(f: (A, B) => C): Flow[C] =
       flowOf { path =>
-        Lift.lift(a.exports(path :+ 0), b.exports(path :+ 1))((aa, bb) => Export(f(aa.root, bb.root), Map(0 -> aa, 1 -> bb)))
+        Lift.lift(a.exports(path :+ 0), b.exports(path :+ 1))((aa, bb) => Export(f(aa.root, bb.root), 0 -> aa, 1 -> bb))
       }
 
   given Bounded[Int] with
