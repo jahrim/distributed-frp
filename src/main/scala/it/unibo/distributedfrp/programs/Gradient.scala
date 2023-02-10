@@ -1,6 +1,7 @@
 package it.unibo.distributedfrp.programs
 
 import it.unibo.distributedfrp.incarnation.Incarnation
+import nz.sodium.StreamSink
 
 object TestIncarnation extends Incarnation:
   override type DeviceId = Int
@@ -16,7 +17,7 @@ class Gradient extends Program[Double]:
   override def main: Flow[Double] = gradient(sensor("source"))
 
   private def gradient(src: Flow[Boolean]): Flow[Double] =
-    loop { distance =>
+    loop(new StreamSink())(Double.PositiveInfinity) { distance =>
       for {
         s <- src
         r <- nbrSensor[Double]("NBR_RANGE")

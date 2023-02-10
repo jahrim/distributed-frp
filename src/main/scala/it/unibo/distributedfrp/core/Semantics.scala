@@ -4,7 +4,7 @@ import it.unibo.distributedfrp.core.{Core, CoreExtensions, Export, Language}
 import it.unibo.distributedfrp.frp.FrpGivens.given
 import it.unibo.distributedfrp.utils.Lift
 import it.unibo.distributedfrp.utils.Lift.*
-import nz.sodium.{Cell, CellLoop, Operational, Transaction}
+import nz.sodium.{Cell, CellLoop, Operational, Transaction, Stream}
 
 trait Semantics extends Core, Language, CoreExtensions:
   override type Context <: BasicContext
@@ -47,12 +47,12 @@ trait Semantics extends Core, Language, CoreExtensions:
       })
     }
 
-  override def loop[A](f: Flow[A] => Flow[A]): Flow[A] =
+  override def loop[A](trigger: Stream[_])(init: A)(f: Flow[A] => Flow[A]): Flow[A] =
     flowOf { path =>
       Transaction.run(() => {
         val cellLoop = new CellLoop[Export[A]]()
-        val cell = f(flowOf(_ => cellLoop)).exports(path)
-        cellLoop.loop(cell)
+        val cell = trigger.snapshot(cellLoop).hold(Export(init))
+        cellLoop.loop(f(flowOf(_ => cell)).exports(path))
         cellLoop
       })
     }
