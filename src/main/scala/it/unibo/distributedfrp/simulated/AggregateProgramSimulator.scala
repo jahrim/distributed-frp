@@ -39,10 +39,12 @@ class AggregateProgramSimulator(val environment: Environment):
     val executor: ExecutorService = Executors.newSingleThreadExecutor()
     val contexts = for (i <- 0 until environment.nDevices) yield context(i)
     val exports = contexts.map(ctx => (ctx.selfId, flow.exports(Seq.empty)(using ctx)))
-    exports.foreach((id, exp) => exp.listen(e => executor.execute(() => deviceExported(id, e, contexts))))
+    exports.foreach((id, exp) => exp.listen(e => {
+      println(s"Device $id exported:\n$e")
+      executor.execute(() => deviceExported(id, e, contexts))
+    }))
 
   private def deviceExported[A](id: DeviceId, exported: Export[A], contexts: Seq[Context]): Unit =
     environment.neighbors(id).foreach { n =>
       contexts(n).neighborExported(id, exported)
     }
-    println(s"Device $id exported:\n$exported")
