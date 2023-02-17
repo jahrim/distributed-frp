@@ -113,10 +113,8 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
 
   "loop" should "return a flow self-dependant flow" in {
     val s = sensor[String](LOCAL_SENSOR)
-    val clock = new StreamSink[Unit]
-    val flow = loop[String](clock)("")(x => lift(s, x)(_ + _))
+    val flow = loop[String]("")(x => lift(s, x)(_ + _))
     val exports = flow.exports(PATH)
     exports.sample().root should be (initialSensorValues(LOCAL_SENSOR))
-    clock.send(())
     exports.sample().root should be (initialSensorValues(LOCAL_SENSOR) + initialSensorValues(LOCAL_SENSOR))
   }

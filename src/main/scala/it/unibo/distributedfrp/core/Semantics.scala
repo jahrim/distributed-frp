@@ -2,9 +2,11 @@ package it.unibo.distributedfrp.core
 
 import it.unibo.distributedfrp.core.{Core, CoreExtensions, Export, Language}
 import it.unibo.distributedfrp.frp.FrpGivens.given
+import it.unibo.distributedfrp.frp.FrpExtensions.*
 import it.unibo.distributedfrp.utils.Lift
 import it.unibo.distributedfrp.utils.Lift.*
-import nz.sodium.{Cell, CellLoop, Operational, Transaction, Stream}
+import nz.sodium.time.SecondsTimerSystem
+import nz.sodium.{Cell, CellLoop, Operational, Stream, Transaction}
 
 trait Semantics extends Core, Language, CoreExtensions:
   override type Context <: BasicContext
@@ -15,6 +17,7 @@ trait Semantics extends Core, Language, CoreExtensions:
     def exported: Export[Any]
 
   trait BasicContext:
+    val timerSystem: SecondsTimerSystem = new SecondsTimerSystem
     def selfId: DeviceId
     def sensor[A](id: SensorId): Cell[A]
     def neighbors: Cell[NeighborField[NeighborInfo]]
@@ -47,13 +50,14 @@ trait Semantics extends Core, Language, CoreExtensions:
       })
     }
 
-  override def loop[A](trigger: Stream[_])(init: A)(f: Flow[A] => Flow[A]): Flow[A] =
+  override def loop[A](init: A)(f: Flow[A] => Flow[A]): Flow[A] =
     flowOf { path =>
       Transaction.run(() => {
-        val cellLoop = new CellLoop[Export[A]]()
-        val cell = trigger.snapshot(cellLoop).hold(Export(init))
-        cellLoop.loop(f(flowOf(_ => cell)).exports(path))
-        cellLoop
+        val output = new CellLoop[Export[A]]()
+        val processedOutput = Operational.updates(output).throttle(summon[Context].timerSystem, 1.0).hold(Export(init))
+        val loopedOutput = f(flowOf(_ => processedOutput.map(x => Export(x.root))))
+        output.loop(loopedOutput.exports(path))
+        processedOutput
       })
     }
 
