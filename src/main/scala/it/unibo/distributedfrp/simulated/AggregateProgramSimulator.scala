@@ -35,10 +35,9 @@ class AggregateProgramSimulator(environment: Environment, executor: ExecutorServ
 
   import SimulationIncarnation._
 
-  def run[A](flow: => Flow[A]): Unit =
-    val evaluatedFlow = Transaction.run(() => flow)
+  def run[A](flow: Flow[A]): Unit =
     val contexts = for (i <- 0 until environment.nDevices) yield context(i)
-    val exports = contexts.map(ctx => (ctx.selfId, evaluatedFlow.exports(Seq.empty)(using ctx)))
+    val exports = Transaction.run(() => contexts.map(ctx => (ctx.selfId, flow.exports(Seq.empty)(using ctx))))
     exports.foreach((id, exp) => exp.listen(e => {
       println(s"Device $id exported:\n$e")
       executor.execute(() => deviceExported(id, e, contexts))
