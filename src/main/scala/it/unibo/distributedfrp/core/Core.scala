@@ -7,7 +7,7 @@ trait Core:
   type SensorId
   type Context
   
-  type Path = Seq[Any]
+  type Path = Seq[Slot]
   
   trait Flow[A]:
     def exports(path: Path)(using ctx: Context): Cell[Export[A]]

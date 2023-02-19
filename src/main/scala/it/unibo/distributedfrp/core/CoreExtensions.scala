@@ -4,6 +4,7 @@ import it.unibo.distributedfrp.utils.{Bounded, Lift, LowerBounded, UpperBounded}
 import Lift.*
 import nz.sodium.Cell
 import it.unibo.distributedfrp.frp.FrpGivens.given
+import it.unibo.distributedfrp.core.Slot._
 
 trait CoreExtensions:
   self: Core =>
@@ -14,7 +15,7 @@ trait CoreExtensions:
     def constant[A](a: Context ?=> A): Flow[A] = fromCell(new Cell(a))
 
   extension[A] (flow: Flow[A])
-    def map[B](f: A => B): Flow[B] = flowOf(path => flow.exports(path :+ ()).map(e => Export(f(e.root), () -> e)))
+    def map[B](f: A => B): Flow[B] = flowOf(path => flow.exports(path :+ LiftOperand(0)).map(e => Export(f(e.root), LiftOperand(0) -> e)))
 
   extension[A] (field: NeighborField[A])
     def update[B](f: Map[DeviceId, A] => Map[DeviceId, B]): NeighborField[B] =
@@ -62,7 +63,7 @@ trait CoreExtensions:
   given Lift[Flow] with
     override def lift[A, B, C](a: Flow[A], b: Flow[B])(f: (A, B) => C): Flow[C] =
       flowOf { path =>
-        Lift.lift(a.exports(path :+ 0), b.exports(path :+ 1))((aa, bb) => Export(f(aa.root, bb.root), 0 -> aa, 1 -> bb))
+        Lift.lift(a.exports(path :+ LiftOperand(0)), b.exports(path :+ LiftOperand(1)))((aa, bb) => Export(f(aa.root, bb.root), LiftOperand(0) -> aa, LiftOperand(1) -> bb))
       }
 
   given Bounded[Int] with

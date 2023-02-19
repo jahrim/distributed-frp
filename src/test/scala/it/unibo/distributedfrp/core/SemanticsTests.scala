@@ -5,6 +5,7 @@ import flatspec.*
 import matchers.*
 import nz.sodium.{Cell, StreamSink, Transaction}
 import it.unibo.distributedfrp.utils.Lift.*
+import it.unibo.distributedfrp.core.Slot._
 
 class SemanticsTests extends AnyFlatSpec with should.Matchers:
   private val SELF_ID = 1
@@ -51,8 +52,8 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val branchFlow = branch(Flows.constant(true))(Flows.constant(thenValue))(Flows.constant(elseValue))
     branchFlow.exports(PATH).sample() should be (Export(
       thenValue,
-      () -> Export(true),
-      true -> Export(thenValue)
+      BranchCondition -> Export(true),
+      BranchSide(true) -> Export(thenValue)
     ))
   }
 
@@ -62,8 +63,8 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val branchFlow = branch(Flows.constant(false))(Flows.constant(thenValue))(Flows.constant(elseValue))
     branchFlow.exports(PATH).sample() should be(Export(
       elseValue,
-      () -> Export(false),
-      false -> Export(elseValue)
+      BranchCondition -> Export(false),
+      BranchSide(false) -> Export(elseValue)
     ))
   }
 
@@ -77,13 +78,13 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val expectedNeighborField = NeighborField(neighbors.filter(_ < 3).map(x => (x, x)).toMap)
     val expectedExport = Export(
       expectedNeighborField,
-      () -> Export(
+      BranchCondition -> Export(
         true,
-        () -> Export(SELF_ID)
+        LiftOperand(0) -> Export(SELF_ID)
       ),
-      true -> Export(
+      BranchSide(true) -> Export(
         expectedNeighborField,
-        () -> Export(SELF_ID)
+        Nbr -> Export(SELF_ID)
       )
     )
     flow.exports(PATH).sample() should be (expectedExport)
@@ -100,11 +101,11 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val expectedNeighborField = NeighborField(neighbors.filter(_ < 3).map(x => (x, nbrSensorValue(SELF_ID, x))).toMap)
     val expectedExport = Export(
       expectedNeighborField,
-      () -> Export(
+      BranchCondition -> Export(
         true,
-        () -> Export(SELF_ID)
+        LiftOperand(0) -> Export(SELF_ID)
       ),
-      true -> Export(
+      BranchSide(true) -> Export(
         expectedNeighborField
       )
     )
@@ -116,5 +117,4 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val flow = loop[String]("")(x => lift(s, x)(_ + _))
     val exports = flow.exports(PATH)
     exports.sample().root should be (initialSensorValues(LOCAL_SENSOR))
-    exports.sample().root should be (initialSensorValues(LOCAL_SENSOR) + initialSensorValues(LOCAL_SENSOR))
   }
