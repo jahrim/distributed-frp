@@ -55,7 +55,9 @@ object FrpExtensions:
         }
       })
 
-    def calm(init: Lazy[Option[A]] = new Lazy(None)): Stream[A] = stream.filterByPrevious((prev, next) => !prev.equals(next), init)
+    def calm(init: Lazy[Option[A]]): Stream[A] = stream.filterByPrevious((prev, next) => !prev.equals(next), init)
+
+    def calm: Stream[A] = stream.calm(new Lazy(None))
 
     def throttle(timerSystem: SecondsTimerSystem, span: Double): Stream[A] =
       stream.bufferByTime(timerSystem, span, _.last)
