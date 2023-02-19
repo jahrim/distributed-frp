@@ -71,6 +71,6 @@ trait CoreExtensions:
     override def compare(x: Int, y: Int): Int = x.compareTo(y)
 
   given Bounded[Double] with
-    override def lowerBound: Double = Double.PositiveInfinity
-    override def upperBound: Double = Double.NegativeInfinity
+    override def lowerBound: Double = Double.NegativeInfinity
+    override def upperBound: Double = Double.PositiveInfinity
     override def compare(x: Double, y: Double): Int = x.compareTo(y)

@@ -54,10 +54,12 @@ trait Semantics extends Core, Language, CoreExtensions:
     flowOf { path =>
       Transaction.run(() => {
         val output = new CellLoop[Export[A]]()
-        val processedOutput = Operational.updates(output).throttle(summon[Context].timerSystem, 1.0).hold(Export(init))
-        val loopedOutput = f(flowOf(_ => processedOutput.map(x => Export(x.root))))
-        output.loop(loopedOutput.exports(path))
-        processedOutput
+        val processedOutput = Operational.defer(Operational.value(output))
+          .throttle(summon[Context].timerSystem, 0.1)
+          .hold(Export(init))
+          .calm
+        output.loop(f(flowOf(_ => processedOutput.map(x => Export(x.root)))).exports(path))
+        output
       })
     }
 

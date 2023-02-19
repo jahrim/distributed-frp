@@ -5,7 +5,7 @@ import it.unibo.distributedfrp.utils.Lift._
 import nz.sodium.StreamSink
 
 @main def gradientSample(): Unit =
-  val environment = Environment.grid(2, 1)
+  val environment = Environment.grid(2, 2)
   val simulator = new AggregateProgramSimulator(environment)
 
   import simulator.SimulationIncarnation._
