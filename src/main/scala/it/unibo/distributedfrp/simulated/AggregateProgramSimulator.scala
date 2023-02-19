@@ -3,12 +3,12 @@ package it.unibo.distributedfrp.simulated
 import it.unibo.distributedfrp.core.Export
 import it.unibo.distributedfrp.frp.IncrementalCellSink
 import it.unibo.distributedfrp.incarnation.Incarnation
-import nz.sodium.{Cell, CellSink}
+import nz.sodium.{Cell, CellSink, Transaction}
 
 import java.util.concurrent.{ExecutorService, Executors}
 import scala.math.*
 
-class AggregateProgramSimulator(val environment: Environment):
+class AggregateProgramSimulator(environment: Environment, executor: ExecutorService = Executors.newSingleThreadExecutor):
   object SimulationIncarnation extends Incarnation:
     override type DeviceId = Int
     override type SensorId = String
@@ -35,10 +35,10 @@ class AggregateProgramSimulator(val environment: Environment):
 
   import SimulationIncarnation._
 
-  def run[A](flow: Flow[A]): Unit =
-    val executor: ExecutorService = Executors.newSingleThreadExecutor()
+  def run[A](flow: => Flow[A]): Unit =
+    val evaluatedFlow = Transaction.run(() => flow)
     val contexts = for (i <- 0 until environment.nDevices) yield context(i)
-    val exports = contexts.map(ctx => (ctx.selfId, flow.exports(Seq.empty)(using ctx)))
+    val exports = contexts.map(ctx => (ctx.selfId, evaluatedFlow.exports(Seq.empty)(using ctx)))
     exports.foreach((id, exp) => exp.listen(e => {
       println(s"Device $id exported:\n$e")
       executor.execute(() => deviceExported(id, e, contexts))
