@@ -10,7 +10,7 @@ trait Core:
   type Path = Seq[Any]
   
   trait Flow[A]:
-    def exports(path: Seq[Any])(using ctx: Context): Cell[Export[A]]
+    def exports(path: Path)(using ctx: Context): Cell[Export[A]]
 
   protected def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A]
 
