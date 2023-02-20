@@ -4,7 +4,7 @@ import it.unibo.distributedfrp.simulated.{AggregateProgramSimulator, Environment
 import it.unibo.distributedfrp.utils.Lift.lift
 
 @main def loopSample(): Unit =
-  val environment = Environment.grid(2, 1)
+  val environment = Environment.manhattanGrid(2, 1)
   val simulator = new AggregateProgramSimulator(environment)
 
   import simulator.SimulationIncarnation._

@@ -6,7 +6,23 @@ trait Environment:
   def neighbors(device: Int): Iterable[Int]
 
 object Environment:
-  def grid(rows: Int, cols: Int): Environment = new Environment:
+  def manhattanGrid(cols: Int, rows: Int): Environment =
+    grid(cols, rows, (col, row) => Seq(
+      (col, row),
+      (col + 1, row),
+      (col - 1, row),
+      (col, row + 1),
+      (col, row - 1),
+    ))
+
+  def euclideanGrid(cols: Int, rows: Int): Environment =
+    grid(cols, rows, (col, row) =>
+      for
+        c <- -1 to 1
+        r <- -1 to 1
+      yield (col + c, row + r))
+
+  private def grid(cols: Int, rows: Int, candidateNeighbors: (Int, Int) => Iterable[(Int, Int)]): Environment = new Environment:
     private def row(device: Int): Int = device / cols
 
     private def col(device: Int): Int = device % cols
@@ -18,11 +34,5 @@ object Environment:
     override def neighbors(device: Int): Iterable[Int] =
       val deviceCol = col(device)
       val deviceRow = row(device)
-      val candidates = Seq(
-        (deviceCol, deviceRow),
-        (deviceCol + 1, deviceRow),
-        (deviceCol - 1, deviceRow),
-        (deviceCol, deviceRow + 1),
-        (deviceCol, deviceRow - 1),
-      )
+      val candidates = candidateNeighbors(deviceCol, deviceRow)
       candidates.filter((c, r) => c >= 0 && r >= 0 && c < cols && r < rows).map((c, r) => r * cols + c)
