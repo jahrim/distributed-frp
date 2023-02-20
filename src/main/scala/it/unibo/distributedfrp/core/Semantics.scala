@@ -59,7 +59,6 @@ trait Semantics extends Core, Language, CoreExtensions:
       Transaction.run(() => {
         val output = new CellLoop[Export[A]]()
         val processedOutput = Operational.defer(Operational.value(output))
-          .calm
           .throttle(context.timerSystem, context.loopingPeriod)
           .hold(Export(init))
         output.loop(f(flowOf(_ => processedOutput.map(x => Export(x.root)))).exports(path))
