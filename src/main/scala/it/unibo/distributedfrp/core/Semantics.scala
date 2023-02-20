@@ -18,13 +18,15 @@ trait Semantics extends Core, Language, CoreExtensions:
     def exported: Export[Any]
 
   trait BasicContext:
+    private val DEFAULT_LOOPING_PERIOD = 0.1
     val timerSystem: SecondsTimerSystem = new SecondsTimerSystem
     def selfId: DeviceId
     def sensor[A](id: SensorId): Cell[A]
     def neighbors: Cell[NeighborField[NeighborInfo]]
+    def loopingPeriod: Double = DEFAULT_LOOPING_PERIOD
 
   override def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A] = new Flow[A]:
-    override def exports(path: Path)(using Context): Cell[Export[A]] = f(path)
+    override def exports(path: Path)(using Context): Cell[Export[A]] = f(path).calm
 
   private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborInfo) => T)(using ctx: Context): Cell[NeighborField[T]] =
     ctx.neighbors.map(_.filterMap(field => field.exported.followPath(path).map(f(_, field))))
@@ -53,10 +55,12 @@ trait Semantics extends Core, Language, CoreExtensions:
 
   override def loop[A](init: A)(f: Flow[A] => Flow[A]): Flow[A] =
     flowOf { path =>
+      val context = summon[Context]
       Transaction.run(() => {
         val output = new CellLoop[Export[A]]()
-        val processedOutput = Operational.defer(Operational.value(output).calm)
-          .throttle(summon[Context].timerSystem, 0.1)
+        val processedOutput = Operational.defer(Operational.value(output))
+          .calm
+          .throttle(context.timerSystem, context.loopingPeriod)
           .hold(Export(init))
         output.loop(f(flowOf(_ => processedOutput.map(x => Export(x.root)))).exports(path))
         output
