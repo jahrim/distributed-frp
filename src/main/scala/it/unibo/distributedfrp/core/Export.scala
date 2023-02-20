@@ -23,7 +23,7 @@ trait Export[+A]:
     if (children.nonEmpty) {
       sb.append(indent).append("{\n")
       children.foreach { (k, v) =>
-        sb.append(indent).append(INDENT_AMOUNT).append(k).append(" -> ")
+        sb.append(indent).append(INDENT_AMOUNT).append(k).append(" => ")
         v.format(indent + INDENT_AMOUNT, sb)
       }
       sb.append(indent).append("}\n")

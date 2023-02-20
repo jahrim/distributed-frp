@@ -15,7 +15,9 @@ trait Core:
 
   protected def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A]
 
-  case class NeighborField[A](neighborValues: Map[DeviceId, A])
+  case class NeighborField[A](neighborValues: Map[DeviceId, A]):
+    override def toString: String =
+      s"(${neighborValues.mkString(", ")})"
 
   object NeighborField:
     def empty[A]: NeighborField[A] = NeighborField(Map.empty)
