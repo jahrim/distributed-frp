@@ -4,7 +4,8 @@ import nz.sodium._
 
 trait Core:
   type DeviceId
-  type SensorId
+  type LocalSensorId
+  type NeighborSensorId
   type Context
   
   type Path = Seq[Slot]

@@ -14,14 +14,14 @@ trait Semantics extends Core, Language, CoreExtensions:
   type NeighborInfo <: BasicNeighborInfo
 
   trait BasicNeighborInfo:
-    def sensor[A](id: SensorId): A
+    def sensor[A](id: NeighborSensorId): A
     def exported: Export[Any]
 
   trait BasicContext:
     private val DEFAULT_LOOPING_PERIOD = 0.1
     val timerSystem: SecondsTimerSystem = new SecondsTimerSystem
     def selfId: DeviceId
-    def sensor[A](id: SensorId): Cell[A]
+    def sensor[A](id: LocalSensorId): Cell[A]
     def neighbors: Cell[NeighborField[NeighborInfo]]
     def loopingPeriod: Double = DEFAULT_LOOPING_PERIOD
 
@@ -66,11 +66,11 @@ trait Semantics extends Core, Language, CoreExtensions:
       })
     }
 
-  override def nbrSensor[A](id: SensorId): Flow[NeighborField[A]] =
+  override def nbrSensor[A](id: NeighborSensorId): Flow[NeighborField[A]] =
     flowOf { path =>
       val alignedNeighbors = alignWithNeighbors(path)((_, n) => n.sensor[A](id))
       alignedNeighbors.map(Export(_))
     }
 
-  override def sensor[A](id: SensorId): Flow[A] =
+  override def sensor[A](id: LocalSensorId): Flow[A] =
     Flows.fromCell(summon[Context].sensor[A](id))
