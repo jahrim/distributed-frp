@@ -19,8 +19,8 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
   )
 
   object SemanticsTestsIncarnation extends MockIncarnation:
-    override def initialLocalSensors(selfId: DeviceId): Map[SensorId, Any] = initialSensorValues
-    override def initialNeighborSensors(selfId: DeviceId, neighborId: DeviceId): Map[SensorId, Any] = Map(
+    override def initialLocalSensors(selfId: DeviceId): Map[LocalSensorId, Any] = initialSensorValues
+    override def initialNeighborSensors(selfId: DeviceId, neighborId: DeviceId): Map[NeighborSensorId, Any] = Map(
       NBR_SENSOR -> nbrSensorValue(selfId, neighborId)
     )
     

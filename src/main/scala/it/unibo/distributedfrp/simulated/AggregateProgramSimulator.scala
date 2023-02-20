@@ -1,8 +1,7 @@
 package it.unibo.distributedfrp.simulated
 
-import it.unibo.distributedfrp.core.Export
+import it.unibo.distributedfrp.core.{Export, Incarnation}
 import it.unibo.distributedfrp.frp.IncrementalCellSink
-import it.unibo.distributedfrp.incarnation.Incarnation
 import nz.sodium.{Cell, CellSink, Transaction}
 
 import java.util.concurrent.{ExecutorService, Executors}

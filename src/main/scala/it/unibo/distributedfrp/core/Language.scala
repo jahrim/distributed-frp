@@ -1,7 +1,5 @@
 package it.unibo.distributedfrp.core
 
-import nz.sodium.Stream
-
 trait Language:
   self: Core =>
 

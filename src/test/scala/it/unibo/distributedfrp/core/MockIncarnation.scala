@@ -1,7 +1,6 @@
 package it.unibo.distributedfrp.core
 
 import it.unibo.distributedfrp.frp.IncrementalCellSink
-import it.unibo.distributedfrp.incarnation.Incarnation
 import nz.sodium.{Cell, CellSink}
 
 trait MockIncarnation extends Incarnation:

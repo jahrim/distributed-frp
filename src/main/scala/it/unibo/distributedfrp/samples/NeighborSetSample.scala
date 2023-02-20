@@ -11,6 +11,6 @@ import it.unibo.distributedfrp.utils.Lift._
   import simulator.SimulationIncarnation.given
 
   simulator.run {
-    nbr(mid).map(_.toSet)
+    nbr(mid).toSet
   }
 

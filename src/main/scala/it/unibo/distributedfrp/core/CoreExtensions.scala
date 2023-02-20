@@ -41,18 +41,10 @@ trait CoreExtensions:
     def filterMap[B](f: A => Option[B]): NeighborField[B] =
       field.update(_.flatMap((d, x) => f(x).map((d, _))))
 
-    def aggregate[R](seed: R)(combine: (R, A) => R): R =
+    def foldLeft[R](seed: R)(combine: (R, A) => R): R =
       field.neighborValues.values.foldLeft(seed)(combine)
 
-    def fold(seed: A)(combine: (A, A) => A): A = aggregate(seed)(combine)
-
-    def toSet: Set[A] = aggregate(Set.empty)(_ + _)
-
-  extension[A : UpperBounded] (field: NeighborField[A])
-    def min: A = field.fold(summon[UpperBounded[A]].upperBound)(summon[UpperBounded[A]].min)
-
-  extension[A : LowerBounded] (field: NeighborField[A] )
-    def max: A = field.fold(summon[LowerBounded[A]].lowerBound)(summon[LowerBounded[A]].max)
+    def fold(seed: A)(combine: (A, A) => A): A = foldLeft(seed)(combine)
 
   given Lift[NeighborField] with
     override def lift[A, B, C](a: NeighborField[A], b: NeighborField[B])(f: (A, B) => C): NeighborField[C] = {
