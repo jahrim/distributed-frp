@@ -35,4 +35,6 @@ object Environment:
       val deviceCol = col(device)
       val deviceRow = row(device)
       val candidates = candidateNeighbors(deviceCol, deviceRow)
-      candidates.filter((c, r) => c >= 0 && r >= 0 && c < cols && r < rows).map((c, r) => r * cols + c)
+      candidates
+        .filter((c, r) => c >= 0 && r >= 0 && c < cols && r < rows)
+        .map((c, r) => r * cols + c)
