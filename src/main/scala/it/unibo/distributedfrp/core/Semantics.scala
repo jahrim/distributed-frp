@@ -51,15 +51,24 @@ trait Semantics:
       }
     }
 
-  override def branch[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] =
+  private def conditional[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A])(combine: (Export[Boolean], Export[A], Export[A]) => Export[A]): Flow[A] =
     flowOf { path =>
-      val condExport = cond.exports(path :+ BranchCondition)
-      val thenExport = th.exports(path :+ BranchSide(true))
-      val elseExport = el.exports(path :+ BranchSide(false))
-      condExport.lift(thenExport, elseExport, (c, t, e) => {
-        val selected = if c.root then t else e
-        Export(selected.root, BranchCondition -> c, BranchSide(c.root) -> selected)
-      })
+      val condExport = cond.exports(path :+ Condition)
+      val thenExport = th.exports(path :+ Then)
+      val elseExport = el.exports(path :+ Else)
+      lift(condExport, thenExport, elseExport)(combine)
+    }
+
+  override def branch[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] =
+    conditional(cond)(th)(el) { (c, t, e) =>
+      val selected = if c.root then t else e
+      val selectedSlot = if c.root then Then else Else
+      Export(selected.root, Condition -> c, selectedSlot -> selected)
+    }
+
+  def mux[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] =
+    conditional(cond)(th)(el) { (c, t, e) =>
+      Export(if c.root then t.root else e.root, Condition -> c, Then -> t, Else -> e)
     }
 
   override def loop[A](init: A)(f: Flow[A] => Flow[A]): Flow[A] =

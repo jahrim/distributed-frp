@@ -3,8 +3,9 @@ package it.unibo.distributedfrp.core
 enum Slot:
   case Operand(index: Int)
   case Nbr
-  case BranchCondition
-  case BranchSide(side: Boolean)
+  case Condition
+  case Then
+  case Else
   case Key[T](value: T)
 
 trait Export[+A]:

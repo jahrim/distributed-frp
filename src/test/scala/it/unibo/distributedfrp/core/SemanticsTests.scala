@@ -52,8 +52,8 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val branchFlow = branch(Flows.constant(true))(Flows.constant(thenValue))(Flows.constant(elseValue))
     branchFlow.exports(PATH).sample() should be (Export(
       thenValue,
-      BranchCondition -> Export(true),
-      BranchSide(true) -> Export(thenValue)
+      Condition -> Export(true),
+      Then -> Export(thenValue)
     ))
   }
 
@@ -63,8 +63,32 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val branchFlow = branch(Flows.constant(false))(Flows.constant(thenValue))(Flows.constant(elseValue))
     branchFlow.exports(PATH).sample() should be(Export(
       elseValue,
-      BranchCondition -> Export(false),
-      BranchSide(false) -> Export(elseValue)
+      Condition -> Export(false),
+      Else -> Export(elseValue)
+    ))
+  }
+
+  "mux" should "include both branches when the condition is true" in {
+    val thenValue = 1
+    val elseValue = 2
+    val branchFlow = mux(Flows.constant(true))(Flows.constant(thenValue))(Flows.constant(elseValue))
+    branchFlow.exports(PATH).sample() should be(Export(
+      thenValue,
+      Condition -> Export(true),
+      Then -> Export(thenValue),
+      Else -> Export(elseValue)
+    ))
+  }
+
+  it should "include both branches when the condition is false" in {
+    val thenValue = 1
+    val elseValue = 2
+    val branchFlow = mux(Flows.constant(false))(Flows.constant(thenValue))(Flows.constant(elseValue))
+    branchFlow.exports(PATH).sample() should be(Export(
+      elseValue,
+      Condition -> Export(false),
+      Then -> Export(thenValue),
+      Else -> Export(elseValue)
     ))
   }
 
@@ -78,11 +102,11 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val expectedNeighborField = NeighborField(neighbors.filter(_ < 3).map(x => (x, x)).toMap)
     val expectedExport = Export(
       expectedNeighborField,
-      BranchCondition -> Export(
+      Condition -> Export(
         true,
         Operand(0) -> Export(SELF_ID)
       ),
-      BranchSide(true) -> Export(
+      Then -> Export(
         expectedNeighborField,
         Nbr -> Export(SELF_ID)
       )
@@ -101,11 +125,11 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
     val expectedNeighborField = NeighborField(neighbors.filter(_ < 3).map(x => (x, nbrSensorValue(SELF_ID, x))).toMap)
     val expectedExport = Export(
       expectedNeighborField,
-      BranchCondition -> Export(
+      Condition -> Export(
         true,
         Operand(0) -> Export(SELF_ID)
       ),
-      BranchSide(true) -> Export(
+      Then -> Export(
         expectedNeighborField
       )
     )
