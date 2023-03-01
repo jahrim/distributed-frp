@@ -38,9 +38,6 @@ trait CoreExtensions:
     def withoutNeighbor(neighborId: DeviceId): NeighborField[A] =
       field.update(_ - neighborId)
 
-    def filterMap[B](f: A => Option[B]): NeighborField[B] =
-      field.update(_.flatMap((d, x) => f(x).map((d, _))))
-
     def foldLeft[R](seed: R)(combine: (R, A) => R): R =
       field.neighborValues.values.foldLeft(seed)(combine)
 
@@ -57,13 +54,3 @@ trait CoreExtensions:
       flowOf { path =>
         Lift.lift(a.exports(path :+ LiftOperand(0)), b.exports(path :+ LiftOperand(1)))((aa, bb) => Export(f(aa.root, bb.root), LiftOperand(0) -> aa, LiftOperand(1) -> bb))
       }
-
-  given Bounded[Int] with
-    override def lowerBound: Int = Int.MinValue
-    override def upperBound: Int = Int.MaxValue
-    override def compare(x: Int, y: Int): Int = x.compareTo(y)
-
-  given Bounded[Double] with
-    override def lowerBound: Double = Double.NegativeInfinity
-    override def upperBound: Double = Double.PositiveInfinity
-    override def compare(x: Double, y: Double): Int = x.compareTo(y)

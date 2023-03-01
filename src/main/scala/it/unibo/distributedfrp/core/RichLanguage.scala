@@ -1,10 +1,20 @@
 package it.unibo.distributedfrp.core
 
 import it.unibo.distributedfrp.utils.Lift.*
-import it.unibo.distributedfrp.utils.{LowerBounded, UpperBounded}
+import it.unibo.distributedfrp.utils.{Bounded, LowerBounded, UpperBounded}
 
 trait RichLanguage:
   self: Core with CoreExtensions with Language =>
+
+  given Bounded[Int] with
+    override def lowerBound: Int = Int.MinValue
+    override def upperBound: Int = Int.MaxValue
+    override def compare(x: Int, y: Int): Int = x.compareTo(y)
+
+  given Bounded[Double] with
+    override def lowerBound: Double = Double.NegativeInfinity
+    override def upperBound: Double = Double.PositiveInfinity
+    override def compare(x: Double, y: Double): Int = x.compareTo(y)
 
   extension[A] (flow: Flow[NeighborField[A]])
     def withoutSelf: Flow[NeighborField[A]] = lift(mid, flow)((id, field) => field.withoutNeighbor(id))

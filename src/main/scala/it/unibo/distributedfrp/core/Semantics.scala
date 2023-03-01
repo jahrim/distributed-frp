@@ -1,15 +1,17 @@
 package it.unibo.distributedfrp.core
 
-import it.unibo.distributedfrp.core._
-import it.unibo.distributedfrp.core.Slot._
+import it.unibo.distributedfrp.core.*
+import it.unibo.distributedfrp.core.Slot.*
 import it.unibo.distributedfrp.frp.FrpGivens.given
-import it.unibo.distributedfrp.frp.FrpExtensions._
+import it.unibo.distributedfrp.frp.FrpExtensions.*
 import it.unibo.distributedfrp.utils.Lift
-import it.unibo.distributedfrp.utils.Lift._
+import it.unibo.distributedfrp.utils.Lift.*
 import nz.sodium.time.SecondsTimerSystem
 import nz.sodium.{Cell, CellLoop, Operational, Stream, Transaction}
 
-trait Semantics extends Core, Language, CoreExtensions:
+trait Semantics:
+  self: Core with Language with CoreExtensions =>
+
   override type Context <: BasicContext
   type NeighborInfo <: BasicNeighborInfo
 
@@ -22,22 +24,29 @@ trait Semantics extends Core, Language, CoreExtensions:
     val timerSystem: SecondsTimerSystem = new SecondsTimerSystem
     def selfId: DeviceId
     def sensor[A](id: LocalSensorId): Cell[A]
-    def neighbors: Cell[NeighborField[NeighborInfo]]
+    def neighbors: Cell[Map[DeviceId, NeighborInfo]]
     def loopingPeriod: Double = DEFAULT_LOOPING_PERIOD
 
   override def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A] = new Flow[A]:
     override def exports(path: Path)(using Context): Cell[Export[A]] = f(path).calm
 
-  private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborInfo) => T)(using ctx: Context): Cell[NeighborField[T]] =
-    ctx.neighbors.map(_.filterMap(field => field.exported.followPath(path).map(f(_, field))))
+  private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborInfo) => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
+    def align(neighbors: Map[DeviceId, NeighborInfo]): Map[DeviceId, T] =
+      neighbors.flatMap { (neighborId, neighborInfo) =>
+        neighborInfo
+          .exported
+          .followPath(path)
+          .map(alignedExport => (neighborId, f(alignedExport, neighborInfo)))
+      }
+    ctx.neighbors.map(align(_))
 
-  override def mid: Flow[DeviceId] = Flows.constant(summon[Context].selfId)
+  override val mid: Flow[DeviceId] = Flows.constant(summon[Context].selfId)
 
   override def nbr[A](a: Flow[A]): Flow[NeighborField[A]] =
     flowOf { path =>
       val neighboringValues = alignWithNeighbors(path :+ Nbr)((e, _) => e.root.asInstanceOf[A])
       lift(a.exports(path :+ Nbr), neighboringValues){ (x, n) =>
-        val neighborField = NeighborField(n.neighborValues + (summon[Context].selfId -> x.root))
+        val neighborField = NeighborField(n + (summon[Context].selfId -> x.root))
         Export(neighborField, Nbr -> x)
       }
     }
@@ -69,7 +78,7 @@ trait Semantics extends Core, Language, CoreExtensions:
   override def nbrSensor[A](id: NeighborSensorId): Flow[NeighborField[A]] =
     flowOf { path =>
       val alignedNeighbors = alignWithNeighbors(path)((_, n) => n.sensor[A](id))
-      alignedNeighbors.map(Export(_))
+      alignedNeighbors.map(x => Export(NeighborField(x)))
     }
 
   override def sensor[A](id: LocalSensorId): Flow[A] =

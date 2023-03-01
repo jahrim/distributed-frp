@@ -36,12 +36,12 @@ class AggregateProgramSimulator(
     def nbrRange: Flow[NeighborField[Double]] = nbrSensor[Double](NbrRange)
 
     class SimulationContext(val selfId: DeviceId) extends BasicContext:
-      private val neighborsSink = new IncrementalCellSink[NeighborField[NeighborInfo]](NeighborField(), calm = true)
+      private val neighborsSink = new IncrementalCellSink[Map[DeviceId, NeighborInfo]](Map.empty, calm = true)
 
       def neighborExported(neighborId: DeviceId, exported: Export[Any]): Unit =
-        neighborsSink.update(_.withNeighbor(neighborId)(SimulationNeighborInfo(selfId, neighborId, exported)))
+        neighborsSink.update(_ + (neighborId -> SimulationNeighborInfo(selfId, neighborId, exported)))
 
-      override def neighbors: Cell[NeighborField[NeighborInfo]] = neighborsSink.cell
+      override def neighbors: Cell[Map[DeviceId, NeighborInfo]] = neighborsSink.cell
 
       override def sensor[A](id: LocalSensorId): Cell[A] = id match
         case Source => new Cell(sources.contains(selfId).asInstanceOf[A])
