@@ -16,6 +16,9 @@ trait RichLanguage:
     override def upperBound: Double = Double.PositiveInfinity
     override def compare(x: Double, y: Double): Int = x.compareTo(y)
 
+  def mux[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] =
+    lift(cond, th, el)(if _ then _ else _)
+
   extension[A] (flow: Flow[NeighborField[A]])
     def withoutSelf: Flow[NeighborField[A]] = lift(mid, flow)((id, field) => field.withoutNeighbor(id))
 

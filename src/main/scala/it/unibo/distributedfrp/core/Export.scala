@@ -1,7 +1,7 @@
 package it.unibo.distributedfrp.core
 
 enum Slot:
-  case LiftOperand(index: Int)
+  case Operand(index: Int)
   case Nbr
   case BranchCondition
   case BranchSide(side: Boolean)

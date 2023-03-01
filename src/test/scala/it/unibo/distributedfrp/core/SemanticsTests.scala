@@ -80,7 +80,7 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
       expectedNeighborField,
       BranchCondition -> Export(
         true,
-        LiftOperand(0) -> Export(SELF_ID)
+        Operand(0) -> Export(SELF_ID)
       ),
       BranchSide(true) -> Export(
         expectedNeighborField,
@@ -103,7 +103,7 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers:
       expectedNeighborField,
       BranchCondition -> Export(
         true,
-        LiftOperand(0) -> Export(SELF_ID)
+        Operand(0) -> Export(SELF_ID)
       ),
       BranchSide(true) -> Export(
         expectedNeighborField

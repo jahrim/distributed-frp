@@ -15,7 +15,7 @@ trait CoreExtensions:
     def constant[A](a: Context ?=> A): Flow[A] = fromCell(new Cell(a))
 
   extension[A] (flow: Flow[A])
-    def map[B](f: A => B): Flow[B] = flowOf(path => flow.exports(path :+ LiftOperand(0)).map(e => Export(f(e.root), LiftOperand(0) -> e)))
+    def map[B](f: A => B): Flow[B] = flowOf(path => flow.exports(path :+ Operand(0)).map(e => Export(f(e.root), Operand(0) -> e)))
 
   extension[A] (field: NeighborField[A])
     def update[B](f: Map[DeviceId, A] => Map[DeviceId, B]): NeighborField[B] =
@@ -44,13 +44,39 @@ trait CoreExtensions:
     def fold(seed: A)(combine: (A, A) => A): A = foldLeft(seed)(combine)
 
   given Lift[NeighborField] with
-    override def lift[A, B, C](a: NeighborField[A], b: NeighborField[B])(f: (A, B) => C): NeighborField[C] = {
+    override def lift[A, B, C](a: NeighborField[A], b: NeighborField[B])(f: (A, B) => C): NeighborField[C] =
       val commonDevices = a.neighborValues.keySet intersect b.neighborValues.keySet
-      NeighborField(commonDevices.map(d => (d, f(a.neighborValues(d), b.neighborValues(d)))).toMap)
-    }
+      NeighborField(commonDevices.map(x => (x, f(a.neighborValues(x), b.neighborValues(x)))).toMap)
+
+    override def lift[A, B, C, D](a: NeighborField[A], b: NeighborField[B], c: NeighborField[C])(f: (A, B, C) => D): NeighborField[D] =
+      val commonDevices = a.neighborValues.keySet intersect b.neighborValues.keySet intersect c.neighborValues.keySet
+      NeighborField(commonDevices.map(x => (x, f(a.neighborValues(x), b.neighborValues(x), c.neighborValues(x)))).toMap)
 
   given Lift[Flow] with
     override def lift[A, B, C](a: Flow[A], b: Flow[B])(f: (A, B) => C): Flow[C] =
       flowOf { path =>
-        Lift.lift(a.exports(path :+ LiftOperand(0)), b.exports(path :+ LiftOperand(1)))((aa, bb) => Export(f(aa.root, bb.root), LiftOperand(0) -> aa, LiftOperand(1) -> bb))
+        Lift.lift(
+          a.exports(path :+ Operand(0)),
+          b.exports(path :+ Operand(1))
+        )(
+          (aa, bb) => Export(
+            f(aa.root, bb.root),
+            Operand(0) -> aa,
+            Operand(1) -> bb)
+        )
+      }
+
+    override def lift[A, B, C, D](a: Flow[A], b: Flow[B], c: Flow[C])(f: (A, B, C) => D): Flow[D] =
+      flowOf { path =>
+        Lift.lift(
+          a.exports(path :+ Operand(0)),
+          b.exports(path :+ Operand(1)),
+          c.exports(path :+ Operand(2))
+        )(
+          (aa, bb, cc) => Export(
+            f(aa.root, bb.root, cc.root),
+            Operand(0) -> aa,
+            Operand(1) -> bb,
+            Operand(2) -> cc)
+        )
       }

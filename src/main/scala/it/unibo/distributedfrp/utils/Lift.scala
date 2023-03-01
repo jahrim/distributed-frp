@@ -3,6 +3,8 @@ package it.unibo.distributedfrp.utils
 trait Lift[F[_]]:
   def lift[A, B, C](a: F[A], b: F[B])(f: (A, B) => C): F[C]
 
+  def lift[A, B, C, D](a: F[A], b: F[B], c: F[C])(f: (A, B, C) => D): F[D]
+
 object Lift:
   def lift[A, B, C, F[_] : Lift](a: F[A], b: F[B])(f: (A, B) => C): F[C] =
     summon[Lift[F]].lift(a, b)(f)
@@ -10,5 +12,8 @@ object Lift:
   def lift2[A, B, C, F1[_] : Lift, F2[_] : Lift](a: F1[F2[A]], b: F1[F2[B]])(f: (A, B) => C): F1[F2[C]] =
     lift(a, b)((aa, bb) => lift(aa, bb)(f))
 
-  def lift3[A, B, C, F1[_] : Lift, F2[_] : Lift, F3[_] : Lift](a: F1[F2[F3[A]]], b: F1[F2[F3[B]]])(f: (A, B) => C): F1[F2[F3[C]]] =
-    lift2(a, b)((aa, bb) => lift(aa, bb)(f))
+  def lift[A, B, C, D, F[_] : Lift](a: F[A], b: F[B], c: F[C])(f: (A, B, C) => D): F[D] =
+    summon[Lift[F]].lift(a, b, c)(f)
+
+  def lift2[A, B, C, D, F1[_] : Lift, F2[_] : Lift](a: F1[F2[A]], b: F1[F2[B]], c: F1[F2[C]])(f: (A, B, C) => D): F1[F2[D]] =
+    lift(a, b, c)((aa, bb, cc) => lift(aa, bb, cc)(f))
