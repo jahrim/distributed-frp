@@ -27,7 +27,7 @@ class AggregateProgramSimulator(
     override type LocalSensorId = SimulationLocalSensor
     override type NeighborSensorId = SimulationNeighborSensor
     override type Context = SimulationContext
-    override type NeighborInfo = SimulationNeighborInfo
+    override type NeighborState = SimulationNeighborState
 
     override def context(selfId: DeviceId): Context = new SimulationContext(selfId)
 
@@ -36,18 +36,18 @@ class AggregateProgramSimulator(
     def nbrRange: Flow[NeighborField[Double]] = nbrSensor[Double](NbrRange)
 
     class SimulationContext(val selfId: DeviceId) extends BasicContext:
-      private val neighborsSink = new IncrementalCellSink[Map[DeviceId, NeighborInfo]](Map.empty, calm = true)
+      private val neighborsSink = new IncrementalCellSink[Map[DeviceId, NeighborState]](Map.empty, calm = true)
 
       def neighborExported(neighborId: DeviceId, exported: Export[Any]): Unit =
-        neighborsSink.update(_ + (neighborId -> SimulationNeighborInfo(selfId, neighborId, exported)))
+        neighborsSink.update(_ + (neighborId -> SimulationNeighborState(selfId, neighborId, exported)))
 
-      override def neighbors: Cell[Map[DeviceId, NeighborInfo]] = neighborsSink.cell
+      override def neighbors: Cell[Map[DeviceId, NeighborState]] = neighborsSink.cell
 
       override def sensor[A](id: LocalSensorId): Cell[A] = id match
         case Source => new Cell(sources.contains(selfId).asInstanceOf[A])
         case Obstacle => new Cell(obstacles.contains(selfId).asInstanceOf[A])
 
-    case class SimulationNeighborInfo(selfId: DeviceId, neighborId: DeviceId, exported: Export[Any]) extends BasicNeighborInfo:
+    case class SimulationNeighborState(selfId: DeviceId, neighborId: DeviceId, exported: Export[Any]) extends BasicNeighborState:
       override def sensor[A](id: NeighborSensorId): A = id match
         case NbrRange => (environment.position(selfId), environment.position(neighborId)) match
           case ((x1, y1), (x2, y2)) => hypot(x1 - x2, y1 - y2).asInstanceOf[A]

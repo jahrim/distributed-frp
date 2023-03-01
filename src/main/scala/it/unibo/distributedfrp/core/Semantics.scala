@@ -13,9 +13,9 @@ trait Semantics:
   self: Core with Language with CoreExtensions =>
 
   override type Context <: BasicContext
-  type NeighborInfo <: BasicNeighborInfo
+  type NeighborState <: BasicNeighborState
 
-  trait BasicNeighborInfo:
+  trait BasicNeighborState:
     def sensor[A](id: NeighborSensorId): A
     def exported: Export[Any]
 
@@ -24,19 +24,19 @@ trait Semantics:
     val timerSystem: SecondsTimerSystem = new SecondsTimerSystem
     def selfId: DeviceId
     def sensor[A](id: LocalSensorId): Cell[A]
-    def neighbors: Cell[Map[DeviceId, NeighborInfo]]
+    def neighbors: Cell[Map[DeviceId, NeighborState]]
     def loopingPeriod: Double = DEFAULT_LOOPING_PERIOD
 
   override def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A] = new Flow[A]:
     override def exports(path: Path)(using Context): Cell[Export[A]] = f(path).calm
 
-  private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborInfo) => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
-    def align(neighbors: Map[DeviceId, NeighborInfo]): Map[DeviceId, T] =
-      neighbors.flatMap { (neighborId, neighborInfo) =>
-        neighborInfo
+  private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborState) => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
+    def align(neighbors: Map[DeviceId, NeighborState]): Map[DeviceId, T] =
+      neighbors.flatMap { (neighborId, neighborState) =>
+        neighborState
           .exported
           .followPath(path)
-          .map(alignedExport => (neighborId, f(alignedExport, neighborInfo)))
+          .map(alignedExport => (neighborId, f(alignedExport, neighborState)))
       }
     ctx.neighbors.map(align(_))
 
