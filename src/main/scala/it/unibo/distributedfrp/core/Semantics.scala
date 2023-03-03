@@ -2,8 +2,8 @@ package it.unibo.distributedfrp.core
 
 import it.unibo.distributedfrp.core.*
 import it.unibo.distributedfrp.core.Slot.*
-import it.unibo.distributedfrp.frp.FrpGivens.given
 import it.unibo.distributedfrp.frp.FrpExtensions.*
+import it.unibo.distributedfrp.frp.FrpExtensions.given
 import it.unibo.distributedfrp.utils.Lift
 import it.unibo.distributedfrp.utils.Lift.*
 import nz.sodium.time.SecondsTimerSystem

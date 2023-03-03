@@ -1,4 +1,4 @@
-package it.unibo.distributedfrp.simulated
+package it.unibo.distributedfrp.simulation
 
 import it.unibo.distributedfrp.core.{Export, Incarnation}
 import it.unibo.distributedfrp.frp.IncrementalCellSink

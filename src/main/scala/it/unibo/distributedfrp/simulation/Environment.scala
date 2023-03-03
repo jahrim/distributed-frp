@@ -1,4 +1,4 @@
-package it.unibo.distributedfrp.simulated
+package it.unibo.distributedfrp.simulation
 
 trait Environment:
   def nDevices: Int

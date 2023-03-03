@@ -1,10 +1,18 @@
 package it.unibo.distributedfrp.frp
+import it.unibo.distributedfrp.utils.Lift
 import nz.sodium.{Cell, CellLoop, Lazy, Operational, Stream, StreamLoop, Transaction, Tuple2 as BiTuple}
 
 import java.util.Optional
 import nz.sodium.time.SecondsTimerSystem
 
 object FrpExtensions:
+  given Lift[Cell] with
+    override def lift[A, B, C](a: Cell[A], b: Cell[B])(f: (A, B) => C): Cell[C] =
+      a.lift(b, (aa, bb) => f(aa, bb))
+
+    override def lift[A, B, C, D](a: Cell[A], b: Cell[B], c: Cell[C])(f: (A, B, C) => D): Cell[D] =
+      a.lift(b, c, (aa, bb, cc) => f(aa, bb, cc))
+
   extension[A] (stream: Stream[Option[A]])
     def onlyIfDefined: Stream[A] = stream.filter(_.isDefined).map(_.get)
 

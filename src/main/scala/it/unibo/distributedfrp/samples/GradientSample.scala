@@ -1,6 +1,6 @@
 package it.unibo.distributedfrp.samples
 
-import it.unibo.distributedfrp.simulated.{AggregateProgramSimulator, Environment}
+import it.unibo.distributedfrp.simulation.{AggregateProgramSimulator, Environment}
 import it.unibo.distributedfrp.utils.Lift.*
 
 @main def gradientSample(): Unit =

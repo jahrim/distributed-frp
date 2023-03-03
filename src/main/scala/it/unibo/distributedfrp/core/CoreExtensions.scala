@@ -3,8 +3,8 @@ package it.unibo.distributedfrp.core
 import it.unibo.distributedfrp.utils.{Bounded, Lift, LowerBounded, UpperBounded}
 import Lift.*
 import nz.sodium.Cell
-import it.unibo.distributedfrp.frp.FrpGivens.given
 import it.unibo.distributedfrp.core.Slot._
+import it.unibo.distributedfrp.frp.FrpExtensions.given
 
 trait CoreExtensions:
   self: Core =>
