@@ -8,14 +8,10 @@ enum Slot:
   case Else
   case Key[T](value: T)
 
-trait Export[+A]:
+case class ExportTree[+A](root: A, children: Map[Slot, ExportTree[Any]]):
   private val INDENT_AMOUNT = "  "
 
-  def root: A
-
-  def children: Map[Slot, Export[Any]]
-
-  def followPath(path: Seq[Slot]): Option[Export[Any]] = path match
+  def followPath(path: Seq[Slot]): Option[ExportTree[Any]] = path match
     case h :: t => children.get(h).flatMap(_.followPath(t))
     case _ => Some(this)
 
@@ -35,8 +31,5 @@ trait Export[+A]:
     format("", sb)
     sb.toString
 
-object Export:
-  case class ExportImpl[+A](root: A, children: Map[Slot, Export[Any]]) extends Export[A]
-
-
-  def apply[A](root: A, children: (Slot, Export[Any])*): Export[A] = ExportImpl(root, children.toMap)
+object ExportTree:
+  def apply[A](root: A, children: (Slot, ExportTree[Any])*): ExportTree[A] = ExportTree(root, children.toMap)

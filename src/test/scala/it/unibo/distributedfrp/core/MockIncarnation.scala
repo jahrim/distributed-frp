@@ -26,19 +26,25 @@ trait MockIncarnation extends Incarnation:
 
     override def neighbors: Cell[Map[DeviceId, NeighborState]] = neighborsInfo.cell
 
-    def updateLocalSensor(id: LocalSensorId)(newValue: Any): Unit =
+    def updateLocalSensor(id: LocalSensorId, newValue: Any): Unit =
       sensors(id).send(newValue)
 
-    def addNeighbor(neighborId: DeviceId)(exported: Export[Any]): Unit =
-      neighborsInfo.update(_ + (neighborId -> MockNeighborState(exported, initialNeighborSensors(selfId, neighborId))))
+    def receiveExportFromNeighbor(neighborId: DeviceId, exported: Export[Any]): Unit =
+      neighborsInfo.update(_.updatedWith(neighborId) { oldState =>
+        val newState = oldState
+          .map(_.copy(exported = exported))
+          .getOrElse(MockNeighborState(exported, initialNeighborSensors(selfId, neighborId)))
+        Some(newState)
+      })
 
     def removeNeighbor(neighborId: DeviceId): Unit =
       neighborsInfo.update(_ - neighborId)
 
-    def receiveExportFromNeighbor(neighborId: DeviceId)(exported: Export[Any]): Unit =
-      neighborsInfo.update(_.updatedWith(neighborId)(_.map(_.copy(exported = exported))))
-
-    def updateSensorForNeighbor(neighborId: DeviceId)(sensorId: NeighborSensorId, newValue: Any): Unit =
+    def updateSensorForNeighbor(neighborId: DeviceId, sensorId: NeighborSensorId, newValue: Any): Unit =
       neighborsInfo.update(_.updatedWith(neighborId)(_.map(x => x.copy(sensors = x.sensors + (sensorId -> newValue)))))
 
-
+    def reset(): Unit =
+      neighborsInfo.set(Map.empty)
+      sensors.foreachEntry { (id, cell) =>
+        cell.send(initialSensorValues(id))
+      }

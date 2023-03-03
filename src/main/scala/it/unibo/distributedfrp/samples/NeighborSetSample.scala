@@ -1,7 +1,7 @@
 package it.unibo.distributedfrp.samples
 
 import it.unibo.distributedfrp.simulation.{AggregateProgramSimulator, Environment}
-import it.unibo.distributedfrp.utils.Lift._
+import it.unibo.distributedfrp.utils.Liftable._
 
 @main def neighborSetSample(): Unit =
   val environment = Environment.euclideanGrid(2, 2)

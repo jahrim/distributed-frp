@@ -1,6 +1,6 @@
 package it.unibo.distributedfrp.simulation
 
-import it.unibo.distributedfrp.core.{Export, Incarnation}
+import it.unibo.distributedfrp.core.{ExportTree, Incarnation}
 import it.unibo.distributedfrp.frp.IncrementalCellSink
 import nz.sodium.{Cell, CellSink, Transaction}
 
@@ -56,7 +56,7 @@ class AggregateProgramSimulator(
 
   def run[A](flow: Flow[A]): Unit =
     val contexts = for (i <- 0 until environment.nDevices) yield context(i)
-    val exports = Transaction.run(() => contexts.map(ctx => (ctx.selfId, flow.exports(Seq.empty)(using ctx))))
+    val exports = Transaction.run(() => contexts.map(ctx => (ctx.selfId, flow(Seq.empty)(using ctx))))
     exports.foreach((id, exp) => exp.listen(e => {
       println(s"Device $id exported:\n$e")
       executor.execute(() => deviceExported(id, e, contexts))

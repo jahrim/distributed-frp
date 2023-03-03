@@ -8,6 +8,8 @@ class IncrementalCellSink[A](initValue: A, calm: Boolean = false):
 
   def cell: Cell[A] = cellSink
 
+  def set(a: A): Unit = update(_ => a)
+
   def update(f: A => A): Unit =
     val old = currentValue
     currentValue = f(currentValue)

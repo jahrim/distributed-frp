@@ -1,12 +1,12 @@
 package it.unibo.distributedfrp.frp
-import it.unibo.distributedfrp.utils.Lift
+import it.unibo.distributedfrp.utils.Liftable
 import nz.sodium.{Cell, CellLoop, Lazy, Operational, Stream, StreamLoop, Transaction, Tuple2 as BiTuple}
 
 import java.util.Optional
 import nz.sodium.time.SecondsTimerSystem
 
 object FrpExtensions:
-  given Lift[Cell] with
+  given Liftable[Cell] with
     override def lift[A, B, C](a: Cell[A], b: Cell[B])(f: (A, B) => C): Cell[C] =
       a.lift(b, (aa, bb) => f(aa, bb))
 
