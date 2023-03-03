@@ -16,7 +16,7 @@ import it.unibo.distributedfrp.utils.Lift.*
   def gradient(src: Flow[Boolean]): Flow[Double] =
     loop(Double.PositiveInfinity) { distance =>
       mux(src) {
-        Flows.constant(0.0)
+        constant(0.0)
       } {
         lift2(nbrRange, nbr(distance))(_ + _).withoutSelf.min
       }
@@ -24,7 +24,7 @@ import it.unibo.distributedfrp.utils.Lift.*
 
   simulator.run {
     branch(obstacle) {
-      Flows.constant(-1.0)
+      constant(-1.0)
     } {
       gradient(source)
     }

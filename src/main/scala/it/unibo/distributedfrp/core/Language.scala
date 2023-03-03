@@ -4,6 +4,7 @@ trait Language:
   self: Core =>
 
   def mid: Flow[DeviceId]
+  def constant[A](a: A): Flow[A]
   def sensor[A](id: LocalSensorId): Flow[A]
   def branch[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A]
   def mux[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A]

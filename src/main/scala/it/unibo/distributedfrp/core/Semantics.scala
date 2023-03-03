@@ -27,6 +27,8 @@ trait Semantics:
     def neighbors: Cell[Map[DeviceId, NeighborState]]
     def loopingPeriod: Double = DEFAULT_LOOPING_PERIOD
 
+  private def context(using ctx: Context) = ctx
+
   override def flowOf[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A] = new Flow[A]:
     override def exports(path: Path)(using Context): Cell[Export[A]] = f(path).calm
 
@@ -40,13 +42,15 @@ trait Semantics:
       }
     ctx.neighbors.map(align(_))
 
-  override val mid: Flow[DeviceId] = Flows.constant(summon[Context].selfId)
+  override val mid: Flow[DeviceId] = Flows.constant(context.selfId)
+
+  override def constant[A](a: A): Flow[A] = Flows.constant(a)
 
   override def nbr[A](a: Flow[A]): Flow[NeighborField[A]] =
     flowOf { path =>
       val neighboringValues = alignWithNeighbors(path :+ Nbr)((e, _) => e.root.asInstanceOf[A])
       lift(a.exports(path :+ Nbr), neighboringValues){ (x, n) =>
-        val neighborField = NeighborField(n + (summon[Context].selfId -> x.root))
+        val neighborField = NeighborField(n + (context.selfId -> x.root))
         Export(neighborField, Nbr -> x)
       }
     }
@@ -73,15 +77,14 @@ trait Semantics:
 
   override def loop[A](init: A)(f: Flow[A] => Flow[A]): Flow[A] =
     flowOf { path =>
-      val context = summon[Context]
-      Transaction.run(() => {
-        val output = new CellLoop[Export[A]]()
-        val processedOutput = Operational.defer(Operational.value(output))
-          .throttle(context.timerSystem, context.loopingPeriod)
-          .hold(Export(init))
-        output.loop(f(flowOf(_ => processedOutput.map(x => Export(x.root)))).exports(path))
-        output
-      })
+      val prev = context.neighbors
+        .map(n => n
+          .get(context.selfId)
+          .flatMap(_.exported.followPath(path))
+          .map(e => Export(e.root.asInstanceOf[A]))
+          .getOrElse(Export(init))
+        )
+      f(flowOf(_ => prev)).exports(path)
     }
 
   override def nbrSensor[A](id: NeighborSensorId): Flow[NeighborField[A]] =
