@@ -2,7 +2,8 @@ package it.unibo.distributedfrp.core
 
 import nz.sodium.Cell
 import nz.sodium.time.SecondsTimerSystem
-import it.unibo.distributedfrp.frp.FrpExtensions._
+import it.unibo.distributedfrp.frp.FrpExtensions.*
+import it.unibo.distributedfrp.utils.Liftable
 
 trait SemanticsModel:
   self: Core with Language =>
@@ -25,9 +26,19 @@ trait SemanticsModel:
     def neighbors: Cell[Map[DeviceId, NeighborState]]
     def loopingPeriod: Double = DEFAULT_LOOPING_PERIOD
 
-  extension[A] (field: NeighborField[A])
-    def map[B](f: A => B): NeighborField[B] = field.map((d, x) => (d, f(x)))
+  override val neighborFieldLiftable: Liftable[NeighborField] = new Liftable[NeighborField]:
+    extension[A] (field: NeighborField[A]) def map[B](f: A => B): NeighborField[B] =
+      field.map((d, x) => (d, f(x)))
 
+    override def lift[A, B, C](a: NeighborField[A], b: NeighborField[B])(f: (A, B) => C): NeighborField[C] =
+      val commonDevices = a.keySet intersect b.keySet
+      commonDevices.map(x => (x, f(a(x), b(x)))).toMap
+
+    override def lift[A, B, C, D](a: NeighborField[A], b: NeighborField[B], c: NeighborField[C])(f: (A, B, C) => D): NeighborField[D] =
+      val commonDevices = a.keySet intersect b.keySet intersect c.keySet
+      commonDevices.map(x => (x, f(a(x), b(x), c(x)))).toMap
+
+  extension[A] (field: NeighborField[A])
     def withNeighbor(neighborId: DeviceId, value: A): NeighborField[A] =
       field + (neighborId -> value)
 
@@ -43,11 +54,3 @@ trait SemanticsModel:
 
     def fromCell[A](cell: Context ?=> Cell[A]): Flow[A] = of(_ => cell.map(ExportTree(_)))
     def constant[A](a: Context ?=> A): Flow[A] = fromCell(new Cell(a))
-
-  override def lift[A, B, C](a: NeighborField[A], b: NeighborField[B])(f: (A, B) => C): NeighborField[C] =
-    val commonDevices = a.keySet intersect b.keySet
-    commonDevices.map(x => (x, f(a(x), b(x)))).toMap
-
-  override def lift[A, B, C, D](a: NeighborField[A], b: NeighborField[B], c: NeighborField[C])(f: (A, B, C) => D): NeighborField[D] =
-    val commonDevices = a.keySet intersect b.keySet intersect c.keySet
-    commonDevices.map(x => (x, f(a(x), b(x), c(x)))).toMap

@@ -1,12 +1,17 @@
 package it.unibo.distributedfrp.frp
-import it.unibo.distributedfrp.utils.Liftable
-import nz.sodium.{Cell, CellLoop, Lazy, Operational, Stream, StreamLoop, Transaction, Tuple2 as BiTuple}
 
+import it.unibo.distributedfrp.utils.Liftable
+import nz.sodium.{Cell, CellLoop, Lambda1, Lazy, Operational, Stream, StreamLoop, Transaction, Tuple2 as BiTuple}
 import java.util.Optional
 import nz.sodium.time.SecondsTimerSystem
 
 object FrpExtensions:
   given Liftable[Cell] with
+    extension[A] (a: Cell[A])
+      def map[B](f: A => B): Cell[B] =
+        val fLambda: Lambda1[A, B] = f(_)
+        a.map(fLambda)
+
     override def lift[A, B, C](a: Cell[A], b: Cell[B])(f: (A, B) => C): Cell[C] =
       a.lift(b, (aa, bb) => f(aa, bb))
 

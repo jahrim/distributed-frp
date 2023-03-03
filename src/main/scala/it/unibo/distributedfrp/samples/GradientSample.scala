@@ -1,7 +1,8 @@
 package it.unibo.distributedfrp.samples
 
 import it.unibo.distributedfrp.simulation.{AggregateProgramSimulator, Environment}
-import it.unibo.distributedfrp.utils.Liftable.*
+import it.unibo.distributedfrp.utils.Liftable
+import it.unibo.distributedfrp.utils.Liftable._
 
 @main def gradientSample(): Unit =
   val environment = Environment.manhattanGrid(5, 5)
@@ -18,7 +19,7 @@ import it.unibo.distributedfrp.utils.Liftable.*
       mux(src) {
         constant(0.0)
       } {
-        liftEach(nbrRange, nbr(distance))(_ + _).withoutSelf.min
+        liftTwice(nbrRange, nbr(distance))(_ + _).withoutSelf.min
       }
     }
 

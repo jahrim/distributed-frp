@@ -17,7 +17,7 @@ trait RichLanguage extends Language:
     override def compare(x: Double, y: Double): Int = x.compareTo(y)
 
   extension[A] (flow: Flow[NeighborField[A]])
-    def withoutSelf: Flow[NeighborField[A]] = lift(mid, flow)((id, field) => field.withoutNeighbor(id))
+    def withoutSelf: Flow[NeighborField[A]] = Liftable.lift(mid, flow)((id, field) => field.withoutNeighbor(id))
 
     def toSet: Flow[Set[A]] = flow.map(_.foldLeft(Set.empty)(_ + _))
 
@@ -26,9 +26,3 @@ trait RichLanguage extends Language:
 
   extension[A : LowerBounded] (flow: Flow[NeighborField[A]])
     def max: Flow[A] = flow.map(_.foldLeft(summon[LowerBounded[A]].lowerBound)(summon[LowerBounded[A]].max))
-
-  def liftEach[A, B, C](a: Flow[NeighborField[A]], b: Flow[NeighborField[B]])(f: (A, B) => C): Flow[NeighborField[C]] =
-    lift(a, b)((aa, bb) => lift(aa, bb)(f))
-
-  def liftEach[A, B, C, D](a: Flow[NeighborField[A]], b: Flow[NeighborField[B]], c: Flow[NeighborField[C]])(f: (A, B, C) => D): Flow[NeighborField[D]] =
-    lift(a, b, c)((aa, bb, cc) => lift(aa, bb, cc)(f))

@@ -13,6 +13,40 @@ trait ConstructsSemantics extends Language:
 
   private def ctx(using Context): Context = summon[Context]
 
+  override val flowLiftable: Liftable[Flow] = new Liftable[Flow]:
+    extension[A] (flow: Flow[A]) def map[B](f: A => B): Flow[B] =
+      Flows.of { path =>
+        flow.run(path :+ Operand(0)).map(e => ExportTree(f(e.root), Operand(0) -> e))
+      }
+
+    override def lift[A, B, C](a: Flow[A], b: Flow[B])(f: (A, B) => C): Flow[C] =
+      Flows.of { path =>
+        Liftable.lift(
+          a.run(path :+ Operand(0)),
+          b.run(path :+ Operand(1))
+        )(
+          (aa, bb) => ExportTree(
+            f(aa.root, bb.root),
+            Operand(0) -> aa,
+            Operand(1) -> bb)
+        )
+      }
+
+    override def lift[A, B, C, D](a: Flow[A], b: Flow[B], c: Flow[C])(f: (A, B, C) => D): Flow[D] =
+      Flows.of { path =>
+        Liftable.lift(
+          a.run(path :+ Operand(0)),
+          b.run(path :+ Operand(1)),
+          c.run(path :+ Operand(2))
+        )(
+          (aa, bb, cc) => ExportTree(
+            f(aa.root, bb.root, cc.root),
+            Operand(0) -> aa,
+            Operand(1) -> bb,
+            Operand(2) -> cc)
+        )
+      }
+
   private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborState) => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
     def align(neighbors: Map[DeviceId, NeighborState]): Map[DeviceId, T] =
       neighbors.flatMap { (neighborId, neighborState) =>
@@ -75,38 +109,4 @@ trait ConstructsSemantics extends Language:
             .getOrElse(ExportTree(init))
         })
       f(Flows.of(_ => prev)).run(path)
-    }
-
-  extension[A] (flow: Flow[A])
-    def map[B](f: A => B): Flow[B] =
-      Flows.of { path =>
-        flow.run(path :+ Operand(0)).map(e => ExportTree(f(e.root), Operand(0) -> e))
-      }
-
-  override def lift[A, B, C](a: Flow[A], b: Flow[B])(f: (A, B) => C): Flow[C] =
-    Flows.of { path =>
-      Liftable.lift(
-        a.run(path :+ Operand(0)),
-        b.run(path :+ Operand(1))
-      )(
-        (aa, bb) => ExportTree(
-          f(aa.root, bb.root),
-          Operand(0) -> aa,
-          Operand(1) -> bb)
-      )
-    }
-
-  override def lift[A, B, C, D](a: Flow[A], b: Flow[B], c: Flow[C])(f: (A, B, C) => D): Flow[D] =
-    Flows.of { path =>
-      Liftable.lift(
-        a.run(path :+ Operand(0)),
-        b.run(path :+ Operand(1)),
-        c.run(path :+ Operand(2))
-      )(
-        (aa, bb, cc) => ExportTree(
-          f(aa.root, bb.root, cc.root),
-          Operand(0) -> aa,
-          Operand(1) -> bb,
-          Operand(2) -> cc)
-      )
     }
