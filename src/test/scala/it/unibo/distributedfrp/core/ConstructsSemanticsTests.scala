@@ -40,31 +40,31 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
   def runFlowOnNeighbors[A](flow: Flow[A], neighbors: Iterable[DeviceId] = NEIGHBORS): Unit =
     neighbors.foreach { n =>
       val nbrContext = context(n)
-      ctx.receiveExportFromNeighbor(n, flow(PATH)(using nbrContext).sample())
+      ctx.receiveExportFromNeighbor(n, flow.run(PATH)(using nbrContext).sample())
     }
 
   "constant" should "be a constant flow with the given value" in {
     val value = 10
-    constant(value)(PATH).sample() should be (ExportTree(value))
+    constant(value).run(PATH).sample() should be (ExportTree(value))
   }
 
   "mid" should "be a constant flow with the device ID" in {
-    mid(PATH).sample() should be (ExportTree(SELF_ID))
+    mid.run(PATH).sample() should be (ExportTree(SELF_ID))
   }
   
   "sensor" should "evaluate to the initial sensor value" in {
-    sensor[String](LOCAL_SENSOR)(PATH).sample() should be (ExportTree(initialSensorValues(LOCAL_SENSOR)))
+    sensor[String](LOCAL_SENSOR).run(PATH).sample() should be (ExportTree(initialSensorValues(LOCAL_SENSOR)))
   }
 
   it should "react to sensor changes" in {
-    val sensorExports = sensor[String](LOCAL_SENSOR)(PATH)
+    val sensorExports = sensor[String](LOCAL_SENSOR).run(PATH)
     val newValue = "B"
     ctx.updateLocalSensor(LOCAL_SENSOR, newValue)
     sensorExports.sample().root should be (newValue)
   }
 
   "map" should "wrap the export using the given function" in {
-    constant(0).map(_ + 1)(PATH).sample() should be (ExportTree(
+    constant(0).map(_ + 1).run(PATH).sample() should be (ExportTree(
       1,
       Operand(0) -> ExportTree(0)
     ))
@@ -72,14 +72,14 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
 
   it should "react to source changes" in {
     val cell = new CellSink(0)
-    val exports = Flows.fromCell(cell).map(_ + 1)(PATH)
+    val exports = Flows.fromCell(cell).map(_ + 1).run(PATH)
     cell.send(10)
     exports.sample().root should be (11)
   }
 
   "lift" should "combine two flows by nesting them" in {
     val flow = lift(constant(THEN_VALUE), constant(ELSE_VALUE))(_ + _)
-    flow(PATH).sample() should be (ExportTree(
+    flow.run(PATH).sample() should be (ExportTree(
       THEN_VALUE + ELSE_VALUE,
       Operand(0) -> ExportTree(THEN_VALUE),
       Operand(1) -> ExportTree(ELSE_VALUE),
@@ -89,7 +89,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
   it should "react to changes in either its input" in {
     val stringOp = new CellSink("A")
     val intOp = new CellSink(2)
-    val exports = lift(Flows.fromCell(stringOp), Flows.fromCell(intOp))(_ * _)(PATH)
+    val exports = lift(Flows.fromCell(stringOp), Flows.fromCell(intOp))(_ * _).run(PATH)
     exports.sample().root should be ("AA")
     stringOp.send("B")
     exports.sample().root should be ("BB")
@@ -99,7 +99,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
 
   "branch" should "include only the 'then' branch when the condition is true" in {
     val flow = branch(constant(true))(constant(THEN_VALUE))(constant(ELSE_VALUE))
-    flow(PATH).sample() should be (ExportTree(
+    flow.run(PATH).sample() should be (ExportTree(
       THEN_VALUE,
       Condition -> ExportTree(true),
       Then -> ExportTree(THEN_VALUE)
@@ -108,7 +108,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
 
   it should "include only the 'else' branch when the condition is false" in {
     val flow = branch(constant(false))(constant(THEN_VALUE))(constant(ELSE_VALUE))
-    flow(PATH).sample() should be (ExportTree(
+    flow.run(PATH).sample() should be (ExportTree(
       ELSE_VALUE,
       Condition -> ExportTree(false),
       Else -> ExportTree(ELSE_VALUE)
@@ -118,7 +118,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
   it should "react to changes in the condition" in {
     val condition = new CellSink(true)
     val flow = branch(Flows.fromCell(condition))(constant(THEN_VALUE))(constant(ELSE_VALUE))
-    val exports = flow(PATH)
+    val exports = flow.run(PATH)
     condition.send(false)
     exports.sample().root should be (ELSE_VALUE)
   }
@@ -126,7 +126,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
   it should "react to changes in the selected branch" in {
     val thenBranch = new CellSink(THEN_VALUE)
     val flow = branch(constant(true))(Flows.fromCell(thenBranch))(constant(ELSE_VALUE))
-    val exports = flow(PATH)
+    val exports = flow.run(PATH)
     val newValue = 100
     thenBranch.send(newValue)
     exports.sample().root should be (newValue)
@@ -134,7 +134,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
 
   "mux" should "include both branches when the condition is true" in {
     val flow = mux(constant(true))(constant(THEN_VALUE))(constant(ELSE_VALUE))
-    flow(PATH).sample() should be (ExportTree(
+    flow.run(PATH).sample() should be (ExportTree(
       THEN_VALUE,
       Condition -> ExportTree(true),
       Then -> ExportTree(THEN_VALUE),
@@ -144,7 +144,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
 
   it should "include both branches when the condition is false" in {
     val flow = mux(constant(false))(constant(THEN_VALUE))(constant(ELSE_VALUE))
-    flow(PATH).sample() should be(ExportTree(
+    flow.run(PATH).sample() should be(ExportTree(
       ELSE_VALUE,
       Condition -> ExportTree(false),
       Then -> ExportTree(THEN_VALUE),
@@ -156,7 +156,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
     val flow = branch(mid.map(_ < 3))(nbr(mid))(nbr(constant(0)))
     runFlowOnNeighbors(flow)
     val expectedNeighborField = NEIGHBORS.filter(_ < 3).map(x => (x, x)).toMap
-    flow(PATH).sample().followPath(Seq(Then)).get should be (ExportTree(
+    flow.run(PATH).sample().followPath(Seq(Then)).get should be (ExportTree(
       expectedNeighborField,
       Nbr -> ExportTree(SELF_ID)
     ))
@@ -164,7 +164,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
 
   it should "react to changes in the neighborhood state" in {
     val flow = nbr(sensor[String](LOCAL_SENSOR))
-    val exports = flow(PATH)
+    val exports = flow.run(PATH)
     runFlowOnNeighbors(flow)
     exports.sample().root should be (NEIGHBORS.map((_, initialSensorValues(LOCAL_SENSOR))).toMap)
   }
@@ -173,7 +173,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
     val flow = branch(mid.map(_ < 3))(nbrSensor(NBR_SENSOR))(nbr(constant(0)))
     runFlowOnNeighbors(flow)
     val expectedNeighborField = NEIGHBORS.filter(_ < 3).map(x => (x, nbrSensorValue(SELF_ID, x))).toMap
-    flow(PATH).sample().followPath(Seq(Then)).get should be (ExportTree(
+    flow.run(PATH).sample().followPath(Seq(Then)).get should be (ExportTree(
       expectedNeighborField
     ))
   }
@@ -181,7 +181,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
   it should "react to neighboring sensor changes" in {
     val flow = nbrSensor[String](NBR_SENSOR)
     runFlowOnNeighbors(flow)
-    val exports = flow(PATH)
+    val exports = flow.run(PATH)
     val updatedNeighbor = 2
     val newValue = "Hello"
     val initialNeighborField = exports.sample().root
@@ -194,14 +194,14 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
   "loop" should "return a self-dependant flow" in {
     val s = sensor[String](LOCAL_SENSOR)
     val flow = loop("")(x => lift(s, x)(_ + _))
-    val exports = flow(PATH)
+    val exports = flow.run(PATH)
     exports.sample().root should be (initialSensorValues(LOCAL_SENSOR))
   }
 
   it should "react to updates in its past state" in {
     val s = sensor[String](LOCAL_SENSOR)
     val flow = loop("")(x => lift(s, x)(_ + _))
-    val exports = flow(PATH)
+    val exports = flow.run(PATH)
     val sensorValue = initialSensorValues(LOCAL_SENSOR)
     ctx.receiveExportFromNeighbor(SELF_ID, exports.sample())
     exports.sample().root should be (sensorValue * 2)
@@ -212,7 +212,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
   it should "react to updates in dependencies in the looping function" in {
     val s = sensor[String](LOCAL_SENSOR)
     val flow = loop("")(x => lift(s, x)(_ + _))
-    val exports = flow.apply(PATH)
+    val exports = flow.run(PATH)
     val newValue = "B"
     ctx.updateLocalSensor(LOCAL_SENSOR, newValue)
     exports.sample().root should be (newValue)

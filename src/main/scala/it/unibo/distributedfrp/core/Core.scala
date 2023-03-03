@@ -8,4 +8,4 @@ trait Core:
   type Export[+_]
 
   trait Flow[A]:
-    def apply(path: Path)(using Context): Cell[Export[A]]
+    def run(path: Path)(using Context): Cell[Export[A]]

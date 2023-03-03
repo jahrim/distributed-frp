@@ -39,7 +39,7 @@ trait SemanticsModel:
 
   object Flows:
     def of[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A] = new Flow[A]:
-      override def apply(path: Path)(using Context): Cell[Export[A]] = f(path)
+      override def run(path: Path)(using Context): Cell[Export[A]] = f(path)
 
     def fromCell[A](cell: Context ?=> Cell[A]): Flow[A] = of(_ => cell.map(ExportTree(_)))
     def constant[A](a: Context ?=> A): Flow[A] = fromCell(new Cell(a))
