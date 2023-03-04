@@ -7,7 +7,7 @@ import nz.sodium.{Cell, CellSink, StreamSink, Transaction}
 import it.unibo.distributedfrp.utils.Liftable.*
 import it.unibo.distributedfrp.core.Slot.*
 
-class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with BeforeAndAfterEach:
+class SemanticsTests extends AnyFlatSpec with should.Matchers with BeforeAndAfterEach:
   private val SELF_ID = 1
   private val NEIGHBORS = Set(1, 2, 3, 4)
   private val PATH = Seq.empty
@@ -22,7 +22,7 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
     LOCAL_SENSOR -> "A",
   )
 
-  object ConstructsSemanticsTestsIncarnation extends MockIncarnation:
+  object SemanticsTestsIncarnation$ extends MockIncarnation:
     override def initialLocalSensors(selfId: DeviceId): Map[LocalSensorId, Any] = initialSensorValues
     override def initialNeighborSensors(selfId: DeviceId, neighborId: DeviceId): Map[NeighborSensorId, Any] = Map(
       NBR_SENSOR -> nbrSensorValue(selfId, neighborId)
@@ -30,8 +30,8 @@ class ConstructsSemanticsTests extends AnyFlatSpec with should.Matchers with Bef
 
     def nbrSensorValue(selfId: DeviceId, neighborId: DeviceId): String = s"$selfId -> $neighborId"
 
-  import ConstructsSemanticsTestsIncarnation._
-  import ConstructsSemanticsTestsIncarnation.given
+  import SemanticsTestsIncarnation$._
+  import SemanticsTestsIncarnation$.given
 
   private given ctx: Context = context(SELF_ID)
 
