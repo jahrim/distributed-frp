@@ -1,18 +1,20 @@
 package it.unibo.distributedfrp.samples
 
-import it.unibo.distributedfrp.simulation.{AggregateProgramSimulator, Environment}
+import it.unibo.distributedfrp.simulation.{Environment, SimulationIncarnation, Simulator}
 import it.unibo.distributedfrp.utils.Liftable
-import it.unibo.distributedfrp.utils.Liftable._
+import it.unibo.distributedfrp.utils.Liftable.*
 
 @main def gradientSample(): Unit =
   val environment = Environment.manhattanGrid(5, 5)
-  val simulator = new AggregateProgramSimulator(
+  val incarnation = SimulationIncarnation(
     environment,
     sources = Set(0),
-    obstacles = Set(2, 7, 12))
+    obstacles = Set(2, 7, 12)
+  )
+  val simulator = Simulator(incarnation)
 
-  import simulator.SimulationIncarnation._
-  import simulator.SimulationIncarnation.given
+  import simulator.incarnation._
+  import simulator.incarnation.given
 
   def gradient(src: Flow[Boolean]): Flow[Double] =
     loop(Double.PositiveInfinity) { distance =>

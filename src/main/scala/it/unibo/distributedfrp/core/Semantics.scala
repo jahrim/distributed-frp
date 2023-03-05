@@ -5,15 +5,16 @@ import it.unibo.distributedfrp.core.Slot.*
 import it.unibo.distributedfrp.frp.FrpExtensions.*
 import it.unibo.distributedfrp.frp.FrpExtensions.given
 import it.unibo.distributedfrp.utils.Liftable
+import it.unibo.distributedfrp.utils.Liftable.lift
 import nz.sodium.time.SecondsTimerSystem
 import nz.sodium.{Cell, CellLoop, Operational, Stream, Transaction}
 
 trait Semantics:
   self: Core with Language =>
 
-  override type NeighborField[+A] = Map[DeviceId, A]
-  override type Context <: BasicContext
   type NeighborState <: BasicNeighborState
+  override type Context <: BasicContext
+  override type NeighborField[+A] = Map[DeviceId, A]
   override type Export[+A] = ExportTree[A]
   override type Path = Seq[Slot]
 
@@ -22,12 +23,9 @@ trait Semantics:
     def exported: Export[Any]
 
   trait BasicContext:
-    private val DEFAULT_LOOPING_PERIOD = 0.1
-    val timerSystem: SecondsTimerSystem = new SecondsTimerSystem
     def selfId: DeviceId
     def sensor[A](id: LocalSensorId): Cell[A]
     def neighbors: Cell[Map[DeviceId, NeighborState]]
-    def loopingPeriod: Double = DEFAULT_LOOPING_PERIOD
 
   override val neighborFieldLiftable: Liftable[NeighborField] = new Liftable[NeighborField]:
     extension[A] (field: NeighborField[A]) def map[B](f: A => B): NeighborField[B] =
@@ -53,7 +51,7 @@ trait Semantics:
 
   object Flows:
     def of[A](f: Context ?=> Path => Cell[Export[A]]): Flow[A] = new Flow[A]:
-      override def run(path: Path)(using Context): Cell[Export[A]] = f(path)
+      override def run(path: Path)(using Context): Cell[Export[A]] = f(path).calm
 
     def fromCell[A](cell: Context ?=> Cell[A]): Flow[A] = of(_ => cell.map(ExportTree(_)))
 
@@ -95,15 +93,14 @@ trait Semantics:
         )
       }
 
-  private def alignWithNeighbors[T](path: Path)(f: (Export[Any], NeighborState) => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
-    def align(neighbors: Map[DeviceId, NeighborState]): Map[DeviceId, T] =
-      neighbors.flatMap { (neighborId, neighborState) =>
-        neighborState
-          .exported
-          .followPath(path)
-          .map(alignedExport => (neighborId, f(alignedExport, neighborState)))
-      }
-    ctx.neighbors.map(align(_))
+  private def alignWithNeighbors[T](path: Path, extract: (Export[Any], NeighborState) => T)(using ctx: Context): Cell[Map[DeviceId, T]] =
+    def alignWith(neighborId: DeviceId, neighborState: NeighborState): Option[(DeviceId, T)] =
+      neighborState
+        .exported
+        .followPath(path)
+        .map(alignedExport => (neighborId, extract(alignedExport, neighborState)))
+
+    ctx.neighbors.map(_.flatMap((neighborId, neighborState) => alignWith(neighborId, neighborState)))
 
   override val mid: Flow[DeviceId] = Flows.constant(ctx.selfId)
 
@@ -113,16 +110,17 @@ trait Semantics:
 
   override def nbr[A](a: Flow[A]): Flow[NeighborField[A]] =
     Flows.of { path =>
-      val neighboringValues = alignWithNeighbors(path :+ Nbr)((e, _) => e.root.asInstanceOf[A])
-      Liftable.lift(a.run(path :+ Nbr), neighboringValues){ (x, n) =>
-        val neighborField = n + (ctx.selfId -> x.root)
-        ExportTree(neighborField, Nbr -> x)
+      val alignmentPath = path :+ Nbr
+      val neighboringValues = alignWithNeighbors(alignmentPath, (e, _) => e.root.asInstanceOf[A])
+      lift(a.run(alignmentPath), neighboringValues){ (exp, n) =>
+        val neighborField = n + (ctx.selfId -> exp.root)
+        ExportTree(neighborField, Nbr -> exp)
       }
     }
 
   override def nbrSensor[A](id: NeighborSensorId): Flow[NeighborField[A]] =
     Flows.of { path =>
-      alignWithNeighbors(path)((_, n) => n.sensor[A](id)).map(ExportTree(_))
+      alignWithNeighbors(path, (_, n) => n.sensor[A](id)).map(ExportTree(_))
     }
 
   private def conditional[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A])(combine: (Export[Boolean], Export[A], Export[A]) => Export[A]): Flow[A] =
@@ -130,7 +128,7 @@ trait Semantics:
       val condExport = cond.run(path :+ Condition)
       val thenExport = th.run(path :+ Then)
       val elseExport = el.run(path :+ Else)
-      Liftable.lift(condExport, thenExport, elseExport)(combine)
+      lift(condExport, thenExport, elseExport)(combine)
     }
 
   override def branch[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] =
