@@ -22,7 +22,7 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     LOCAL_SENSOR -> "A",
   )
 
-  object SemanticsTestsIncarnation$ extends MockIncarnation:
+  object SemanticsTestsIncarnation extends MockIncarnation:
     override def initialLocalSensors(selfId: DeviceId): Map[LocalSensorId, Any] = initialSensorValues
     override def initialNeighborSensors(selfId: DeviceId, neighborId: DeviceId): Map[NeighborSensorId, Any] = Map(
       NBR_SENSOR -> nbrSensorValue(selfId, neighborId)
@@ -30,8 +30,8 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
     def nbrSensorValue(selfId: DeviceId, neighborId: DeviceId): String = s"$selfId -> $neighborId"
 
-  import SemanticsTestsIncarnation$._
-  import SemanticsTestsIncarnation$.given
+  import SemanticsTestsIncarnation._
+  import SemanticsTestsIncarnation.given
 
   private given ctx: Context = context(SELF_ID)
 
@@ -78,18 +78,21 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   "lift" should "combine two flows by nesting them" in {
-    val flow = lift(constant(THEN_VALUE), constant(ELSE_VALUE))(_ + _)
+    val left = "LEFT"
+    val right = "RIGHT"
+    val flow = lift(constant(left), constant(right))(_ + _)
     flow.run(PATH).sample() should be (ExportTree(
-      THEN_VALUE + ELSE_VALUE,
-      Operand(0) -> ExportTree(THEN_VALUE),
-      Operand(1) -> ExportTree(ELSE_VALUE),
+      left + right,
+      Operand(0) -> ExportTree(left),
+      Operand(1) -> ExportTree(right),
     ))
   }
 
-  it should "react to changes in either its input" in {
+  it should "react to changes in either its inputs" in {
     val stringOp = new CellSink("A")
     val intOp = new CellSink(2)
-    val exports = lift(Flows.fromCell(stringOp), Flows.fromCell(intOp))(_ * _).run(PATH)
+    val flow = lift(Flows.fromCell(stringOp), Flows.fromCell(intOp))(_ * _)
+    val exports = flow.run(PATH)
     exports.sample().root should be ("AA")
     stringOp.send("B")
     exports.sample().root should be ("BB")
