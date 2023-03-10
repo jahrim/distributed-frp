@@ -7,8 +7,8 @@ import nz.sodium.Cell
 import scala.math._
 
 class SimulationIncarnation(environment: Environment,
-                            sources: Set[Int] = Set.empty,
-                            obstacles: Set[Int] = Set.empty)
+                            sources: Cell[Set[Int]] = new Cell(Set.empty),
+                            obstacles: Cell[Set[Int]] = new Cell(Set.empty))
   extends Incarnation
     with IncarnationWithEnvironment(environment)
     with TestLocalSensors
@@ -30,8 +30,8 @@ class SimulationIncarnation(environment: Environment,
 
     import SimulationLocalSensor._
     override def sensor[A](id: LocalSensorId): Cell[A] = id match
-      case Source => new Cell(sources.contains(selfId).asInstanceOf[A])
-      case Obstacle => new Cell(obstacles.contains(selfId).asInstanceOf[A])
+      case Source => sources.map(_.contains(selfId).asInstanceOf[A])
+      case Obstacle => obstacles.map(_.contains(selfId).asInstanceOf[A])
 
   case class SimulationNeighborState(selfId: DeviceId,
                                      neighborId: DeviceId,

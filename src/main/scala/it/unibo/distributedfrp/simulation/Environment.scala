@@ -6,6 +6,11 @@ trait Environment:
   def neighbors(device: Int): Iterable[Int]
 
 object Environment:
+  def singleNode: Environment = new Environment:
+    override def nDevices: Int = 1
+    override def position(device: Int): (Double, Double) = (0, 0)
+    override def neighbors(device: Int): Iterable[Int] = Iterable.empty
+  
   def manhattanGrid(cols: Int, rows: Int): Environment =
     grid(cols, rows, (col, row) => Seq(
       (col, row),
