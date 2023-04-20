@@ -1,0 +1,31 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [ "Build" ]
+    branches: [ main ]
+    types: [ completed ]
+
+jobs:
+  Publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 11
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+        uses: actions/setup-java@v2
+      - name: Release packages (tagged)
+        run: sbt clean ci-release
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          CI_COMMIT_TAG: "foo" #to force snapshot
+          #CI_SONATYPE_RELEASE: "sonatypePrepare; sonatypeBundleUpload; sonatypeClose"
+
