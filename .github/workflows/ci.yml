@@ -10,17 +10,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        java-version: [17, 8]
+        java-version: [adopt@1.17, adopt@1.11]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup JDK
-        uses: actions/setup-java@v3
+      - uses: olafurpg/setup-scala@v11
         with:
-          distribution: adopt
-          java-version: ${{ matrix.java-version }}
-          cache: sbt
-      - name: Build and test
-        shell: bash
+          java-version; ${{ matrix.java-version }}
         run: sbt -v +test
