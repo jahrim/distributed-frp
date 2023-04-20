@@ -13,13 +13,7 @@ jobs:
       - name: Run test and coverage
         run: sbt +test
       ### Release part
-      - name: Publish on Codacy
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_API_TOKEN }}
-          coverage-reports: target/scala-2.13/coverage-report/cobertura.xml
       - name: Tag release
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         run: sbt ciReleaseTagNextVersion
     ### If completed, this workflow trigger deploy.yaml
