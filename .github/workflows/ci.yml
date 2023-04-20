@@ -1,21 +1,25 @@
-name: Continuous Integration
+name: Build
 
 on:
-  pull_request:
   push:
-
+  pull_request:
 jobs:
-  test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        java-version: [adopt@1.17, adopt@1.11]
-    runs-on: ${{ matrix.os }}
+  Build:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v11
+      - uses: actions/checkout@v2
         with:
-          java-version; ${{ matrix.java-version }}
-        run: sbt -v +test
+          fetch-depth: 0
+      - name: Run test and coverage
+        run: sbt +test
+      ### Release part
+      - name: Publish on Codacy
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_API_TOKEN }}
+          coverage-reports: target/scala-2.13/coverage-report/cobertura.xml
+      - name: Tag release
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: sbt ciReleaseTagNextVersion
+    ### If completed, this workflow trigger deploy.yaml
