@@ -3,7 +3,7 @@ package it.unibo.distributedfrp.frp
 import nz.sodium.{Cell, CellSink}
 
 class IncrementalCellSink[A](initValue: A, calm: Boolean = false):
-  private var currentValue: A = initValue
+  var currentValue: A = initValue
   private val cellSink: CellSink[A] = new CellSink(initValue)
 
   def cell: Cell[A] = cellSink
