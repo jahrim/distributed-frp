@@ -22,6 +22,8 @@ trait Language:
   def mux[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A]
   def loop[A](init: A)(f: Flow[A] => Flow[A]): Flow[A]
   def nbr[A](a: Flow[A]): Flow[NeighborField[A]]
+
+  def share[A](init: Flow[A])(evolve: (Flow[NeighborField[A]]) => Flow[A]): Flow[A]
   def nbrSensor[A](id: NeighborSensorId): Flow[NeighborField[A]]
 
   extension[A] (field: NeighborField[A])

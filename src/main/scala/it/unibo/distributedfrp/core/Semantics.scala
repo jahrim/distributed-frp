@@ -71,7 +71,8 @@ trait Semantics:
           a.run(path :+ Operand(0)),
           b.run(path :+ Operand(1))
         )(
-          (aa, bb) => ExportTree(
+          (aa, bb) =>
+            ExportTree(
             f(aa.root, bb.root),
             Operand(0) -> aa,
             Operand(1) -> bb)
@@ -155,4 +156,25 @@ trait Semantics:
             .getOrElse(ExportTree(init))
         })
       f(Flows.of(_ => prev)).run(path)
+    }
+
+  override def share[A](init: Flow[A])(evolve: (Flow[NeighborField[A]]) => Flow[A]): Flow[A] =
+    Flows.of { path =>
+      val prev = ctx
+        .neighbors
+        .map(nbrs => {
+          nbrs
+            .map { case (id, data) => id -> data.exported.followPath(path) }
+            .collect { case (id, Some(exportTree)) =>
+              id -> exportTree.root.asInstanceOf[A] }
+        })
+
+      val data = lift(init.run(path), prev)(
+        (default, neigh) => if(neigh.isEmpty) {
+          ExportTree(Map(ctx.selfId -> default.root.asInstanceOf[A]))
+        } else {
+          ExportTree(neigh)
+        }
+      )
+      evolve(Flows.of(_ => data)).run(path)
     }
