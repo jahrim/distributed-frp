@@ -16,6 +16,8 @@ libraryDependecies += "io.github.cric96" %% "distributed-frp" % "0.1.3"
 ```
 
 [Here](https://github.com/AggregateComputing/experiment-2023-acsos-distributed-frp) there is a showcase in which we used this library combined with Alchemist -- a simulator for large-scale pervasive systems.
+
+This is a fork from the original work made by [Francesco Dente](https://github.com/francescodente) with few changes to support the `share` operator.
 ## Main Concept
 
 ### Datatypes
