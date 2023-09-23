@@ -139,7 +139,7 @@ trait Semantics:
       ExportTree(selected.root, Condition -> c, selectedSlot -> selected)
     }
 
-  def mux[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] =
+  override def mux[A](cond: Flow[Boolean])(th: Flow[A])(el: Flow[A]): Flow[A] =
     conditional(cond)(th)(el) { (c, t, e) =>
       ExportTree(if c.root then t.root else e.root, Condition -> c, Then -> t, Else -> e)
     }
