@@ -1,11 +1,20 @@
 package it.unibo.distributedfrp.frp
 
 import it.unibo.distributedfrp.utils.Liftable
-import nz.sodium.{Cell, CellLoop, Lambda1, Lazy, Operational, Stream, StreamLoop, Transaction, Tuple2 as BiTuple}
+import nz.sodium.{Cell, CellLoop, Lambda0, Lambda1, Lambda2, Lambda3, Lambda4, Lambda5, Lambda6, Handler, Lazy, Operational, Stream, StreamLoop, Transaction, Tuple2 as BiTuple}
 import java.util.Optional
 import nz.sodium.time.SecondsTimerSystem
 
 object FrpExtensions:
+  given consumerToHandler[A]: Conversion[(A) => Unit, Handler[A]] = identity
+  given function0ToLambda0[R]: Conversion[() => R, Lambda0[R]] = identity
+  given function1ToLambda1[A,R]: Conversion[(A) => R, Lambda1[A,R]] = identity
+  given function2ToLambda2[A,B,R]: Conversion[(A,B) => R, Lambda2[A,B,R]] = identity
+  given function3ToLambda3[A,B,C,R]: Conversion[(A,B,C) => R, Lambda3[A,B,C,R]] = identity
+  given function4ToLambda4[A,B,C,D,R]: Conversion[(A,B,C,D) => R, Lambda4[A,B,C,D,R]] = identity
+  given function5ToLambda5[A,B,C,D,E,R]: Conversion[(A,B,C,D,E) => R, Lambda5[A,B,C,D,E,R]] = identity
+  given function6ToLambda6[A,B,C,D,E,F,R]: Conversion[(A,B,C,D,E,F) => R, Lambda6[A,B,C,D,E,F,R]] = identity
+
   given Liftable[Cell] with
     def lift[A, B](a: Cell[A])(f: A => B): Cell[B] =
       val fLambda: Lambda1[A, B] = f(_)
@@ -80,5 +89,3 @@ object FrpExtensions:
     def calm: Cell[A] =
       val init = cell.sampleLazy()
       Operational.updates(cell).calm(init.map(Some(_))).holdLazy(init)
-
-
