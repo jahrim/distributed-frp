@@ -293,9 +293,9 @@ class StreamExtensionTest
       (Y(0), N),
       (Y(1), N),
       (Y(2), N),
-      (N, Y("a")),
-      (N, Y("b")),
-      (N, Y("c")),
+      (N,    Y("a")),
+      (N,    Y("b")),
+      (N,    Y("c")),
       (Y(3), Y("d")),
       (Y(4), Y("e")),
     )
@@ -307,10 +307,10 @@ class StreamExtensionTest
     orMonitor.eventLog shouldEqual Seq(
       Map(0 -> "a"),
       Map(0 -> "b"),
-      Map(1 -> "aa"),
-      Map(1 -> "bb", 2 -> "aaa"),
+      Map(          1 -> "aa"),
+      Map(          1 -> "bb", 2 -> "aaa"),
       Map(0 -> "c", 1 -> "cc", 2 -> "bbb"),
-      Map(0 -> "d", 2 -> "ccc"),
+      Map(0 -> "d",            2 -> "ccc"),
     )
   }
   it should "merge all the events of many streams of different types" in {
@@ -320,10 +320,10 @@ class StreamExtensionTest
     orMonitor.eventLog shouldEqual Seq(
       Map(0 -> 0),
       Map(0 -> 1),
-      Map(1 -> "a"),
-      Map(1 -> "b", 2 -> true),
+      Map(        1 -> "a"),
+      Map(        1 -> "b", 2 -> true),
       Map(0 -> 2, 1 -> "c", 2 -> false),
-      Map(0 -> 3, 2 -> true),
+      Map(0 -> 3,           2 -> true),
     )
   }
 
