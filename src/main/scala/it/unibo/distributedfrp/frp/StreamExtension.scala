@@ -223,16 +223,37 @@ object StreamExtension:
 
     /**
      * @return a new [[sodium.Stream Stream]] containing pairs binding each event of
-     *         this [[sodium.Stream Stream]] to a number indicating the discrete time
-     *         when the event was received.
+     *         this [[sodium.Stream Stream]] to a number indicating the instant in the
+     *         discrete timeline when the event was received.
+     * @note see [[zipWithTime]] for dealing with continuous time instead.
      * @example {{{
-     *   s:               | a       b       c       d       e
-     *   s.zipWithIndex:  | (a,0)   (b,1)   (c,2)   (d,3)   (b,4)
+     *   s:              | a       b       c       d       e
+     *   s.zipWithIndex: | (a,0)   (b,1)   (c,2)   (d,3)   (b,4)
      *   ------------------------------------------------------------> t
      * }}}
      */
     def zipWithIndex: sodium.Stream[(A, Int)] =
-      self.collectLazy(0)((next, state) => ((next, state), state + 1))
+      self.collectLazy(0)((next, state) =>
+        ((next, state), state + 1)
+      )
+
+    /**
+     * @return a new [[sodium.Stream Stream]] containing pairs binding each event of
+     *         this [[sodium.Stream Stream]] to a number indicating the instant in the
+     *         continuous timeline when the event was received.
+     *         The instant indicates the number of nanoseconds passed since the creation
+     *         of the [[sodium.Stream Stream]].
+     * @note see [[zipWithIndex]] for dealing with discrete time instead.
+     * @example {{{
+     *   s:             | a         b           c            d           e
+     *   s.zipWithTime: | (a,0ns)   (b,0.2ns)   (c,0.45ns)   (d,0.6ns)   (b,0.7ns)
+     *   --------------------------------------------------------------------------> t
+     * }}}
+     */
+    def zipWithTime: sodium.Stream[(A, Long)] =
+      self.collectLazy(System.nanoTime)((next, state) =>
+        ((next, System.nanoTime - state), state)
+      )
 
     /**
      * Create a new [[sodium.Stream Stream]] which keeps track of the events
