@@ -2,6 +2,8 @@ package it.unibo.distributedfrp.frp
 
 import nz.sodium
 
+import scala.concurrent.duration.*
+
 /** An extension for [[sodium.Stream Stream]]s. */
 object StreamExtension:
   extension[A] (self: Seq[A]){
@@ -222,37 +224,59 @@ object StreamExtension:
       })
 
     /**
+     * @param initialIndex the specified initial index. Defaults to 0.
      * @return a new [[sodium.Stream Stream]] containing pairs binding each event of
      *         this [[sodium.Stream Stream]] to a number indicating the instant in the
-     *         discrete timeline when the event was received.
+     *         discrete timeline when the event was received, starting from the specified
+     *         initial index.
      * @note see [[zipWithTime]] for dealing with continuous time instead.
      * @example {{{
-     *   s:              | a       b       c       d       e
-     *   s.zipWithIndex: | (a,0)   (b,1)   (c,2)   (d,3)   (b,4)
-     *   ------------------------------------------------------------> t
+     *   s:                  | a        b        c        d        e
+     *   s.zipWithIndex():   | (a,0)    (b,1)    (c,2)    (d,3)    (e,4)
+     *   s.zipWithIndex(10): | (a,10)   (b,11)   (c,12)   (d,13)   (e,14)
+     *   ----------------------------------------------------------------> t
      * }}}
      */
-    def zipWithIndex: sodium.Stream[(A, Int)] =
-      self.collectLazy(0)((next, state) =>
+    def zipWithIndex(initialIndex: Int = 0): sodium.Stream[(A, Int)] =
+      self.collectLazy(initialIndex)((next, state) =>
         ((next, state), state + 1)
       )
 
     /**
+     * @param initialTime the specified initial time. Defaults to 0.
      * @return a new [[sodium.Stream Stream]] containing pairs binding each event of
      *         this [[sodium.Stream Stream]] to a number indicating the instant in the
      *         continuous timeline when the event was received.
-     *         The instant indicates the number of nanoseconds passed since the creation
-     *         of the [[sodium.Stream Stream]].
+     *         The instant indicates the time elapsed since the creation of the
+     *         [[sodium.Stream Stream]], which happened at the specified initial time.
      * @note see [[zipWithIndex]] for dealing with discrete time instead.
      * @example {{{
-     *   s:             | a         b           c            d           e
-     *   s.zipWithTime: | (a,0ns)   (b,0.2ns)   (c,0.45ns)   (d,0.6ns)   (b,0.7ns)
-     *   --------------------------------------------------------------------------> t
+     *   s:                    | a           b           c           d           e
+     *   s.zipWithTime():      | (a,10ns)    (b,20ns)    (c,45ns)    (d,60ns)    (e,70ns)
+     *   s.zipWithTime(100ns): | (a,110ns)   (b,120ns)   (c,145ns)   (d,160ns)   (e,170ns)
+     *   ---------------------------------------------------------------------------------> t
      * }}}
      */
-    def zipWithTime: sodium.Stream[(A, Long)] =
+    def zipWithTime(initialTime: FiniteDuration = Duration.Zero): sodium.Stream[(A, FiniteDuration)] =
+      self.collectLazy(System.nanoTime - initialTime.toNanos)((next, state) =>
+        ((next, (System.nanoTime - state).nanoseconds), state)
+      )
+
+    /**
+     * @return a new [[sodium.Stream Stream]] containing pairs binding each event of
+     *         this [[sodium.Stream Stream]] to a number indicating the time elapsed
+     *         in the continuous timeline since the previous event.
+     * @example {{{
+     *   s:               | a          b          c          d          e
+     *   s.zipWithTime(): | (a,10ns)   (b,20ns)   (c,45ns)   (d,60ns)   (e,70ns)
+     *   s.zipWithDelay:  | (a,10ns)   (b,10ns)   (c,25ns)   (d,15ns)   (e,10ns)
+     *   -----------------------------------------------------------------------> t
+     * }}}
+     */
+    def zipWithDelay: sodium.Stream[(A, FiniteDuration)] =
       self.collectLazy(System.nanoTime)((next, state) =>
-        ((next, System.nanoTime - state), state)
+        val currentTime: Long = System.nanoTime
+        ((next, (currentTime - state).nanoseconds), currentTime)
       )
 
     /**
