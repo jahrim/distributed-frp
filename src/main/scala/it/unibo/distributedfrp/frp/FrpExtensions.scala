@@ -6,14 +6,22 @@ import java.util.Optional
 import nz.sodium.time.SecondsTimerSystem
 
 object FrpExtensions:
-  given consumerToHandler[A]: Conversion[(A) => Unit, Handler[A]] = identity
-  given function0ToLambda0[R]: Conversion[() => R, Lambda0[R]] = identity
-  given function1ToLambda1[A,R]: Conversion[(A) => R, Lambda1[A,R]] = identity
-  given function2ToLambda2[A,B,R]: Conversion[(A,B) => R, Lambda2[A,B,R]] = identity
-  given function3ToLambda3[A,B,C,R]: Conversion[(A,B,C) => R, Lambda3[A,B,C,R]] = identity
-  given function4ToLambda4[A,B,C,D,R]: Conversion[(A,B,C,D) => R, Lambda4[A,B,C,D,R]] = identity
-  given function5ToLambda5[A,B,C,D,E,R]: Conversion[(A,B,C,D,E) => R, Lambda5[A,B,C,D,E,R]] = identity
-  given function6ToLambda6[A,B,C,D,E,F,R]: Conversion[(A,B,C,D,E,F) => R, Lambda6[A,B,C,D,E,F,R]] = identity
+  given consumerToHandler[A]: Conversion[(A) => Unit, Handler[A]] =
+    function => (a: A) => function(a)
+  given function0ToLambda0[R]: Conversion[() => R, Lambda0[R]] =
+    function => () => function()
+  given function1ToLambda1[A,R]: Conversion[(A) => R, Lambda1[A,R]] =
+    function => (a: A) => function(a)
+  given function2ToLambda2[A,B,R]: Conversion[(A,B) => R, Lambda2[A,B,R]] =
+    function => (a: A, b: B) => function(a, b)
+  given function3ToLambda3[A,B,C,R]: Conversion[(A,B,C) => R, Lambda3[A,B,C,R]] =
+    function => (a: A, b: B, c: C) => function(a, b, c)
+  given function4ToLambda4[A,B,C,D,R]: Conversion[(A,B,C,D) => R, Lambda4[A,B,C,D,R]] =
+    function => (a: A, b: B, c: C, d: D) => function(a, b, c, d)
+  given function5ToLambda5[A,B,C,D,E,R]: Conversion[(A,B,C,D,E) => R, Lambda5[A,B,C,D,E,R]] =
+    function => (a: A, b: B, c: C, d: D, e: E) => function(a, b, c, d, e)
+  given function6ToLambda6[A,B,C,D,E,F,R]: Conversion[(A,B,C,D,E,F) => R, Lambda6[A,B,C,D,E,F,R]] =
+    function => (a: A, b: B, c: C, d: D, e: E, f: F) => function(a, b, c, d, e, f)
 
   given Liftable[Cell] with
     def lift[A, B](a: Cell[A])(f: A => B): Cell[B] =
