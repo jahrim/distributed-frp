@@ -199,3 +199,43 @@ object StreamSample:
         s1 ! (4)
         (s1, s3) ! ((5, false))
         (s1, s2, s3) ! ((6, "g", true))
+
+  import FiniteStreamExtension.FiniteEvent
+  import FiniteStreamExtension.FiniteEvent.{EOS, Event as E}
+
+  /** {{{ s: | E(0) E(1) E(2) E(3) EOS }}} */
+  def finiteStreamSample: StreamSample[Sink[FiniteEvent[Int]]] =
+    singleStreamSample(E(0), E(1), E(2), E(3), EOS)
+
+  /**
+   * {{{
+   * s1: | E(0) E(1) E(2) E(3) EOS
+   * s2: |           a    b
+   * s3: |                         0
+   * --------------------------------> t
+   * }}}
+   */
+  def finiteTristreamSample: StreamSample[(Sink[FiniteEvent[Int]], Sink[String], Sink[Int])] =
+    new StreamSample((Sink[FiniteEvent[Int]](), Sink[String](), Sink[Int]())):
+      private val (s1, s2, s3) = streams
+      override def generateEvents(): Unit =
+        s1 ! (E(0), E(1))
+        (s1, s2) ! ((E(2), "a"), (E(3), "b"))
+        s1 ! EOS
+        s3 ! 0
+
+  /**
+   * {{{
+   * s: | E(0)   E(1)     E(2)     E(3)     EOS
+   * -----0ms----150ms----250ms----500ms----600ms-> t
+   * }}}
+   * @see [[timedSingleStreamSample]] for more information.
+   */
+  def timedFiniteStreamSample(using MockClockScheduler): StreamSample[Sink[FiniteEvent[Int]]] =
+    timedSingleStreamSample(
+      E(0) -> 0.milliseconds,
+      E(1) -> 150.milliseconds,
+      E(2) -> 250.milliseconds,
+      E(3) -> 500.milliseconds,
+      EOS  -> 600.milliseconds,
+    )

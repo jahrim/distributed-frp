@@ -9,7 +9,7 @@ trait StreamSampleLoader:
    * its [[sodium.Stream Stream]]s.
    *
    * @param sample the specified [[StreamSample]].
-   * @return the specified [[StreamSample]] it self and its
+   * @return the specified [[StreamSample]] itself and its
    *         [[sodium.Stream Stream]]s.
    */
   def load[SS](sample: StreamSample[SS]): (StreamSample[SS], SS) =
