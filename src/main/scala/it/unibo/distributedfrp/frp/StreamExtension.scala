@@ -1,5 +1,6 @@
 package it.unibo.distributedfrp.frp
 
+import it.unibo.distributedfrp.utils.Clock
 import nz.sodium
 
 import scala.concurrent.duration.*
@@ -244,6 +245,7 @@ object StreamExtension:
 
     /**
      * @param initialTime the specified initial time. Defaults to 0.
+     * @param clock a given [[Clock]] dictating the passage of time in the system.
      * @return a new [[sodium.Stream Stream]] containing pairs binding each event of
      *         this [[sodium.Stream Stream]] to a number indicating the instant in the
      *         continuous timeline when the event was received.
@@ -254,29 +256,29 @@ object StreamExtension:
      *   s:                    | a           b           c           d           e
      *   s.zipWithTime():      | (a,10ns)    (b,20ns)    (c,45ns)    (d,60ns)    (e,70ns)
      *   s.zipWithTime(100ns): | (a,110ns)   (b,120ns)   (c,145ns)   (d,160ns)   (e,170ns)
-     *   ---------------------------------------------------------------------------------> t
+     *   ------------------------10ns--------20ns--------45ns--------60ns--------70ns-----> t
      * }}}
      */
-    def zipWithTime(initialTime: FiniteDuration = Duration.Zero): sodium.Stream[(A, FiniteDuration)] =
-      self.collectLazy(System.nanoTime - initialTime.toNanos)((next, state) =>
-        ((next, (System.nanoTime - state).nanoseconds), state)
-      )
+    def zipWithTime(initialTime: FiniteDuration = Duration.Zero)(
+      using clock: Clock = Clock.SystemClock
+    ): sodium.Stream[(A, FiniteDuration)] =
+      self.collectLazy(clock.time - initialTime)((next, state) => ((next, clock.time - state), state))
 
     /**
+     * @param clock a given [[Clock]] dictating the passage of time in the system.
      * @return a new [[sodium.Stream Stream]] containing pairs binding each event of
      *         this [[sodium.Stream Stream]] to a number indicating the time elapsed
      *         in the continuous timeline since the previous event.
      * @example {{{
      *   s:               | a          b          c          d          e
-     *   s.zipWithTime(): | (a,10ns)   (b,20ns)   (c,45ns)   (d,60ns)   (e,70ns)
      *   s.zipWithDelay:  | (a,10ns)   (b,10ns)   (c,25ns)   (d,15ns)   (e,10ns)
-     *   -----------------------------------------------------------------------> t
+     *   -------------------10ns-------20ns-------45ns-------60ns-------70ns----> t
      * }}}
      */
-    def zipWithDelay: sodium.Stream[(A, FiniteDuration)] =
-      self.collectLazy(System.nanoTime)((next, state) =>
-        val currentTime: Long = System.nanoTime
-        ((next, (currentTime - state).nanoseconds), currentTime)
+    def zipWithDelay(using clock: Clock = Clock.SystemClock): sodium.Stream[(A, FiniteDuration)] =
+      self.collectLazy(clock.time)((next, state) =>
+        val currentTime: FiniteDuration = clock.time
+        ((next, currentTime - state), currentTime)
       )
 
     /**
