@@ -75,6 +75,7 @@ object FSLTLShowcase:
     println(s"- Sometimes both even and greater than 100: ${sometimesEvenAndGreaterThan100.value}")
     simulation.stop()
 
+  /** An examination on the results computed by a group of devices. */
   @main def groupExamination(): Unit =
     /** Prepare simulator. */
     val environment = Environment.euclideanGrid(3, 3)
