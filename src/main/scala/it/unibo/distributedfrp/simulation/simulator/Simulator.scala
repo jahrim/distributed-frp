@@ -1,11 +1,10 @@
 package it.unibo.distributedfrp.simulation.simulator
 
-import it.unibo.distributedfrp.core.{ExportTree, Incarnation}
+import it.unibo.distributedfrp.core.Incarnation
 import it.unibo.distributedfrp.frp.FrpExtensions.{*, given}
+import it.unibo.distributedfrp.frp.StreamExtension.*
+import it.unibo.distributedfrp.frp.StreamSinkExtension.StreamSink
 import nz.sodium
-
-import java.util.concurrent.Executors
-import scala.concurrent.ExecutionContext
 
 /**
  * A simulator capable of configuring simulations for a specific [[Incarnation]].
@@ -14,6 +13,27 @@ trait Simulator[I <: Incarnation]:
   /** The [[Incarnation]] for which this [[Simulator]] is capable of configuring [[Simulation Simulation]]s. */
   val incarnation: I
   export incarnation.{*, given}
+
+  /**
+   * The [[Export Export]] of a specific [[incarnation.Context Device]]
+   * at a given time.
+   */
+  type IndividualExport[+A] = (DeviceId, Export[A])
+  /**
+   * The result computed by a specific [[incarnation.Context Device]]
+   * at a given time.
+   */
+  type IndividualResult[+A] = (DeviceId, A)
+  /**
+   * The [[Export Export]]s of all the [[incarnation.Context Device]]s at a
+   * given time.
+   */
+  type CollectiveExportMap[+A] = Map[DeviceId, Export[A]]
+  /**
+   * The results computed by all the [[incarnation.Context Device]]s
+   * at a given time.
+   */
+  type CollectiveResultMap[+A] = Map[DeviceId, A]
 
   /**
    * Configure a new [[Simulation Simulation]] for executing the specified [[Flow]].
@@ -31,130 +51,109 @@ trait Simulator[I <: Incarnation]:
    */
   @FunctionalInterface
   trait Simulation[A]:
-    /** An export in this [[Simulation Simulation]]. */
-    type Export = Simulator.this.incarnation.Export[A]
-    /** A result in this [[Simulation Simulation]]. */
-    type Result = A
-    /**
-     * The [[Export Export]] of a specific [[incarnation.Context Device]]
-     * at a given time.
-     */
-    type IndividualExport = (DeviceId, Export)
-    /** The [[Result Result]] computed by a specific [[incarnation.Context Device]] at a given time. */
-    type IndividualResult = (DeviceId, Result)
-    /**
-     * The [[Export Export]]s of all the [[incarnation.Context Device]]s at a
-     * given time.
-     */
-    type CollectiveExportMap = Map[DeviceId, Export]
-    /** The [[Result Result]]s computed by all the [[incarnation.Context Device]]s at a given time. */
-    type CollectiveResultMap = Map[DeviceId, Result]
-
-    private val _execution: sodium.StreamSink[IndividualExport] = sodium.StreamSink[IndividualExport]()
-    private def exportToResult: Conversion[Export, Result] = _.root
-    private def individualExportToResult: Conversion[IndividualExport, IndividualResult] = _ -> _.root
+    private val _execution: StreamSink[IndividualExport[A]] = sodium.StreamSink[IndividualExport[A]]()
+    private var _started: Boolean = false
+    private var _stopped: Boolean = false
 
     /**
      * Start this [[Simulation Simulation]].
      *
-     * When this method is called, the [[run]] method of the concrete implementation of this
-     * [[Simulation Simulation]] will be called and the [[sodium.Stream Stream]]s exposed by
-     * this [[Simulation Simulation]] will start generating their corresponding events.
+     * When this method is called, the [[startBehavior]] method of the concrete implementation
+     * of this [[Simulation Simulation]] will be called and the [[Stream Stream]]s exposed
+     * by this [[Simulation Simulation]] will start generating their corresponding events.
      *
-     * The user should attach his listeners to the [[sodium.Stream Stream]]s exposed by this
+     * The user should attach his listeners to the [[Stream Stream]]s exposed by this
      * [[Simulation Simulation]] before starting the simulation in order to prevent the loss of
      * events.
      *
      * @note this method should not and cannot be overridden. To change the starting behavior of a
-     *       [[Simulation Simulation]], override the [[run]] method instead.
+     *       [[Simulation Simulation]], override the [[startBehavior]] method instead.
      */
     final def start(): Unit =
-      val executor: ExecutionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
-      sodium.Transaction.run(() =>
-        this.run().listen(executionEvent =>
-          executor.execute(() => this._execution.send(executionEvent))
+      if this._started then
+        throw IllegalStateException("Cannot start a simulation that has already started.")
+      else
+        this._started = true
+        sodium.Transaction.run(() =>
+          this.startBehavior((deviceId, deviceExport) =>
+            if !synchronized(this._stopped)
+            then this._execution.send(deviceId -> deviceExport)
+          )
         )
-      )
 
     /**
-     * Execute this [[Simulation Simulation]] producing a [[sodium.Stream Stream]] of
-     * computation steps.
+     * Stop this [[Simulation Simulation]].
      *
-     * @return a new [[sodium.Stream]] of the computation steps of this [[Simulation Simulation]],
-     *         generated as they are executed.
-     * @note to implement a concrete type extending a [[Simulation Simulation]], it is sufficient
-     *       to provide the implementation for this method.
-     */
-    protected def run(): sodium.Stream[IndividualExport]
-
-    /**
-     * @return the [[sodium.Stream Stream]] of the [[IndividualExport IndividualExport]]s
-     *         generated by the [[incarnation.Context Device]]s as this [[Simulation Simulation]]
-     *         is executed.
-     */
-    def exported: sodium.Stream[IndividualExport] = this._execution
-    /**
-     * @return the [[sodium.Stream Stream]] of the [[IndividualResult IndividualResult]]s
-     *         generated by the [[incarnation.Context Device]]s as this [[Simulation Simulation]]
-     *         is executed.
-     */
-    def computed: sodium.Stream[IndividualResult] = this.exported.map(individualExportToResult)
-
-    /**
-     * @param initialExport the specified initial [[Export Export]].
-     * @param deviceId      the specified id.
-     * @return the [[sodium.Cell Cell]] of the [[Export Export]]s generated by the [[Context Device]]
-     *         with the specified id.
+     * When this method is called, the [[stopBehavior]] method of the concrete implementation
+     * of this [[Simulation Simulation]] will be called and the [[Stream Stream]]s exposed
+     * by this [[Simulation Simulation]] will stop generating their corresponding events.
      *
-     *         Before the [[Context Device]] produces its first [[Export Export]], the [[sodium.Cell Cell]]
-     *         provides the specified initial [[Export Export]] as a placeholder.
+     * @note this method should not and cannot be overridden. To change the stopping behavior of a
+     *       [[Simulation Simulation]], override the [[stopBehavior]] method instead.
      */
-    def exportsOf(initialExport: => Export)(deviceId: DeviceId): sodium.Cell[Export] =
-      this.exported.filter(_._1 == deviceId).map(_._2).holdLazy(sodium.Lazy(initialExport))
+    final def stop(): Unit =
+      if !this._started then
+        throw IllegalStateException("Cannot stop a simulation that hasn't started yet.")
+      else if this._stopped then
+        throw IllegalStateException("Cannot stop a simulation that has already stopped.")
+      else
+        this._stopped = true
+        this.stopBehavior()
 
     /**
-     * @param initialResult the specified initial [[Result Result]].
-     * @param deviceId      the specified id.
-     * @return the [[sodium.Cell Cell]] of the [[Result Result]]s generated by the [[Context Device]]
-     *         with the specified id.
+     * The starting behavior of this [[Simulation Simulation]], configuring its execution.
      *
-     *         Before the [[Context Device]] produces its first [[Result Result]], the [[sodium.Cell Cell]]
-     *         provides the specified initial [[Result Result]] as a placeholder.
+     * @param notifyComputationStep a function that must be called to notify the users of
+     *                              each next computation step of this [[Simulation Simulation]].
      */
-    def resultsOf(initialResult: => Result)(deviceId: DeviceId): sodium.Cell[Result] =
-      this.exportsOf(ExportTree(initialResult))(deviceId).map(exportToResult)
+    protected def startBehavior(notifyComputationStep: IndividualExport[A] => Unit): Unit
+
+    /** The stopping behavior of this [[Simulation Simulation]], configuring its termination. */
+    protected def stopBehavior(): Unit
 
     /**
-     * @return the [[sodium.Cell Cell]] of the [[CollectiveExportMap CollectiveExportMap]]
-     *         generated by collecting the [[Export Export]]s of all the [[incarnation.Context Device]]s
-     *         as this [[Simulation Simulation]] is executed.
+     * @return the [[Stream Stream]] of the [[IndividualExport IndividualExport]]s generated
+     *         by the [[incarnation.Context Device]]s as this [[Simulation Simulation]] is
+     *         executed.
      */
-    def collectiveExports: sodium.Cell[CollectiveExportMap] =
-      this.exported.accumLazy(sodium.Lazy(Map()), (next, acc) => acc + next)
+    def exported: Stream[IndividualExport[A]] =
+      this._execution
+    /**
+     * @return the [[Stream Stream]] of the [[IndividualResult IndividualResult]]s generated
+     *         by the [[incarnation.Context Device]]s as this [[Simulation Simulation]] is
+     *         executed.
+     */
+    def computed: Stream[IndividualResult[A]] =
+      this.exported.map(_ -> _.root)
 
     /**
-     * @return the [[sodium.Cell Cell]] of the [[CollectiveResultMap CollectiveResultMap]]
-     *         generated by collecting the [[Result Result]]s of all the [[incarnation.Context Device]]s
-     *         as this [[Simulation Simulation]] is executed.
+     * @param deviceId the specified id.
+     * @return the [[Stream Stream]] of the [[Export Export]]s generated by the
+     *         [[Context Device]] with the specified id.
      */
-    def collectiveResults: sodium.Cell[CollectiveResultMap] =
-      this.collectiveExports.map(_.map(individualExportToResult))
+    def exportedBy(deviceId: DeviceId): Stream[Export[A]] =
+      this.exported.filter(_._1 == deviceId).map(_._2)
 
-  /** Companion object of [[Simulation]]. */
-  object Simulation:
     /**
-     * Create a new [[Simulation Simulation]] with the specified behavior.
-     *
-     * @param behavior the specified behavior. The behavior of a simulation is a function
-     *                 describing its execution logic and outputting its computation steps
-     *                 as events into the provided [[sodium.StreamSink StreamSink]].
-     * @tparam A the type of results produced by the [[incarnation.Flow Flow]] executed by
-     *           the new [[Simulation Simulation]].
-     * @return a new [[Simulation Simulation]] with the specified behavior.
+     * @param deviceId the specified id.
+     * @return the [[Stream Stream]] of the [[Result Result]]s generated by the
+     *         [[Context Device]] with the specified id.
      */
-    def apply[A](behavior: sodium.StreamSink[(DeviceId, Export[A])] => Unit): Simulation[A] =
-      new Simulation[A]:
-        override def run(): sodium.Stream[IndividualExport] =
-          val executionStream = sodium.StreamSink[IndividualExport]()
-          behavior(executionStream)
-          executionStream
+    def computedBy(deviceId: DeviceId): Stream[A] =
+      this.exportedBy(deviceId).map(_.root)
+
+    /**
+     * @return the [[Stream Stream]] of the [[CollectiveExportMap CollectiveExportMap]]
+     *         generated by collecting the [[Export Export]]s of all the
+     *         [[incarnation.Context Device]]s as this [[Simulation Simulation]] is executed.
+     */
+    def exportedByAll: Stream[CollectiveExportMap[A]] =
+      this.exported.fold(Map())(_ + _)
+
+    /**
+     * @return the [[Stream Stream]] of the [[CollectiveResultMap CollectiveResultMap]]
+     *         generated by collecting the [[Result Result]]s of all the
+     *         [[incarnation.Context Device]]s as this [[Simulation Simulation]] is executed.
+     */
+    def computedByAll: Stream[CollectiveResultMap[A]] =
+      this.exportedByAll.map(_.map(_ -> _.root))
