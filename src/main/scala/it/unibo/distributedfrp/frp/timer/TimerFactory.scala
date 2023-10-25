@@ -17,7 +17,12 @@ object TimerFactory:
   /** The number of [[Thread]]s in the thread pool of the global scheduler. */
   private val DefaultSchedulerPoolSize: Int = Runtime.getRuntime.availableProcessors + 1
   /** The default scheduler used for creating [[Timer]]s. */
-  private val DefaultScheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(DefaultSchedulerPoolSize)
+  private val DefaultScheduler: ScheduledExecutorService =
+    Executors.newScheduledThreadPool(DefaultSchedulerPoolSize, runnable =>
+      val thread: Thread = Executors.defaultThreadFactory.newThread(runnable)
+      thread.setDaemon(true)
+      thread
+    )
 
   /** @return a new [[TimerFactory]] that creates [[Timer]]s as for [[Timer.apply]]. */
   def async(using scheduler: ScheduledExecutorService = DefaultScheduler): TimerFactory[Timer] = Timer.async(_)
