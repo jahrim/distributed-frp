@@ -1,13 +1,17 @@
 package it.unibo.distributedfrp.frp
 
+import it.unibo.distributedfrp.frp.StreamExtension.Stream
 import nz.sodium
 import scala.annotation.targetName
 
 /** An extension for [[sodium.StreamSink StreamSink]]s. */
 object StreamSinkExtension:
-  extension[A] (self: sodium.StreamSink[A]) {
+  /** A [[Stream Stream]] to which the user can push events. */
+  type StreamSink[A] = sodium.StreamSink[A]
+
+  extension[A] (self: StreamSink[A]) {
     /**
-     * Send the specified events to this [[sodium.StreamSink StreamSink]].
+     * Send the specified events to this [[StreamSink StreamSink]].
      *
      * @param events the specified events.
      */
@@ -16,9 +20,9 @@ object StreamSinkExtension:
       events.foreach(self.send)
   }
 
-  extension[A, B] (self: (sodium.StreamSink[A], sodium.StreamSink[B])) {
+  extension[A, B] (self: (StreamSink[A], StreamSink[B])) {
     /**
-     * Send the specified simultaneous events to these [[sodium.StreamSink StreamSink]]s.
+     * Send the specified simultaneous events to these [[StreamSink StreamSink]]s.
      *
      * @param events the specified simultaneous events.
      */
@@ -32,9 +36,9 @@ object StreamSinkExtension:
       )
   }
 
-  extension[A, B, C] (self: (sodium.StreamSink[A], sodium.StreamSink[B], sodium.StreamSink[C])) {
+  extension[A, B, C] (self: (StreamSink[A], StreamSink[B], StreamSink[C])) {
     /**
-     * Send the specified simultaneous events to these [[sodium.StreamSink StreamSink]]s.
+     * Send the specified simultaneous events to these [[StreamSink StreamSink]]s.
      *
      * @param events the specified simultaneous events.
      */

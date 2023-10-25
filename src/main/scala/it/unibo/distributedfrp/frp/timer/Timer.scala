@@ -1,5 +1,7 @@
 package it.unibo.distributedfrp.frp.timer
 
+import it.unibo.distributedfrp.frp.StreamExtension.Stream
+import it.unibo.distributedfrp.frp.StreamSinkExtension.StreamSink
 import it.unibo.distributedfrp.frp.timer.Timer.Tick
 import nz.sodium
 
@@ -14,8 +16,8 @@ trait Timer:
   /** @return the [[FiniteDuration]] after which this [[Timer]] ticks when reset. */
   def duration: FiniteDuration
 
-  /** @return a [[sodium.Stream Stream]] of the [[Tick Tick]]s of this [[Timer]]. */
-  def ticks: sodium.Stream[Tick]
+  /** @return a [[Stream Stream]] of the [[Tick Tick]]s of this [[Timer]]. */
+  def ticks: Stream[Tick]
 
   /**
    * Reset the countdown until the next [[Tick Tick]].
@@ -45,10 +47,10 @@ object Timer:
     override val duration: FiniteDuration,
     scheduler: ScheduledExecutorService
   ) extends Timer:
-    private val _ticks: sodium.StreamSink[Tick] = sodium.StreamSink[Tick]()
+    private val _ticks: StreamSink[Tick] = sodium.StreamSink[Tick]()
     private var _pendingTick: ScheduledFuture[?] = this.scheduleTick()
 
-    override def ticks: sodium.Stream[Tick] = this._ticks
+    override def ticks: Stream[Tick] = this._ticks
 
     override def reset(): this.type =
       synchronized {
