@@ -1,18 +1,12 @@
-package it.unibo.distributedfrp.utils.mock
+package it.unibo.distributedfrp.test.utils.mock.clock
 
-import it.unibo.distributedfrp.utils.Symbols
-import it.unibo.distributedfrp.utils.mock.MockClock
-import org.scalatest.BeforeAndAfter
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import it.unibo.distributedfrp.test.utils.AbstractTest
+import it.unibo.distributedfrp.test.utils.mock.clock.MockClock
 
 import scala.concurrent.duration.*
 
 /** Test for [[MockClock]]. */
-class MockClockTest extends AnyFlatSpec
-  with should.Matchers
-  with BeforeAndAfter
-  with Symbols:
+class MockClockTest extends AbstractTest:
   private var clock: MockClock = MockClock()
   before { this.clock = MockClock() }
 

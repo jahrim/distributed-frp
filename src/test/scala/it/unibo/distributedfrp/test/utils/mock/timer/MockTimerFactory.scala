@@ -1,9 +1,11 @@
-package it.unibo.distributedfrp.utils.mock
+package it.unibo.distributedfrp.test.utils.mock.timer
 
+import it.unibo.distributedfrp.frp.StreamExtension.Stream
+import it.unibo.distributedfrp.frp.StreamSinkExtension.StreamSink
 import it.unibo.distributedfrp.frp.timer.Timer.Tick
 import it.unibo.distributedfrp.frp.timer.{Timer, TimerFactory}
-import it.unibo.distributedfrp.utils.mock.MockClockScheduler
-import it.unibo.distributedfrp.utils.mock.MockClockScheduler.*
+import it.unibo.distributedfrp.test.utils.mock.clock.MockClockScheduler
+import it.unibo.distributedfrp.test.utils.mock.clock.MockClockScheduler.*
 import nz.sodium
 
 import scala.concurrent.duration.FiniteDuration
@@ -23,9 +25,9 @@ object MockTimerFactory:
     override val duration: FiniteDuration,
     scheduler: MockClockScheduler
   ) extends Timer:
-    private val _ticks: sodium.StreamSink[Tick] = sodium.StreamSink[Tick]()
+    private val _ticks: StreamSink[Tick] = sodium.StreamSink[Tick]()
     private var _pendingTick: PendingTask[?] = this.scheduleTick()
-    override def ticks: sodium.Stream[Tick] = this._ticks
+    override def ticks: Stream[Tick] = this._ticks
     override def reset(): this.type =
       synchronized {
         scheduler.cancel(this._pendingTick)

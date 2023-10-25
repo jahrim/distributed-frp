@@ -1,13 +1,11 @@
 package it.unibo.distributedfrp.core
 
-import org.scalatest.*
-import flatspec.*
-import matchers.*
-import nz.sodium.{Cell, CellSink, StreamSink, Transaction}
+import nz.sodium.CellSink
 import it.unibo.distributedfrp.utils.Liftable.*
 import it.unibo.distributedfrp.core.Slot.*
+import it.unibo.distributedfrp.test.utils.AbstractTest
 
-class SemanticsTests extends AnyFlatSpec with should.Matchers with BeforeAndAfterEach:
+class SemanticsTests extends AbstractTest:
   private val SELF_ID = 1
   private val NEIGHBORS = Set(1, 2, 3, 4)
   private val PATH = Seq.empty
@@ -35,13 +33,13 @@ class SemanticsTests extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   private given ctx: Context = context(SELF_ID)
 
-  override def beforeEach(): Unit = ctx.reset()
-
   def runFlowOnNeighbors[A](flow: Flow[A], neighbors: Iterable[DeviceId] = NEIGHBORS): Unit =
     neighbors.foreach { n =>
       val nbrContext = context(n)
       ctx.receiveExportFromNeighbor(n, flow.run(PATH)(using nbrContext).sample())
     }
+
+  before { ctx.reset() }
 
   "constant" should "be a constant flow with the given value" in {
     val value = 10

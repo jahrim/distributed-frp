@@ -5,7 +5,7 @@ import scala.concurrent.duration.FiniteDuration
 
 @FunctionalInterface
 /** A factory for [[Timer]]s. */
-trait TimerFactory[T <: Timer]:
+trait TimerFactory[+T <: Timer]:
   /**
    * @param duration the specified [[FiniteDuration]].
    * @return a new [[Timer]] ticking after the specified [[FiniteDuration]].

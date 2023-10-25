@@ -1,5 +1,6 @@
-package it.unibo.distributedfrp.utils.mock
+package it.unibo.distributedfrp.test.utils.mock.clock
 
+import it.unibo.distributedfrp.test.utils.mock.clock.MockClock
 import it.unibo.distributedfrp.utils.Clock
 
 import scala.concurrent.duration.*

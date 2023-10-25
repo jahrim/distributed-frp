@@ -4,6 +4,7 @@ import it.unibo.distributedfrp.frp.StreamExtension.*
 import it.unibo.distributedfrp.frp.timer.*
 import it.unibo.distributedfrp.utils.Clock
 
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -100,6 +101,42 @@ object FiniteStreamExtension:
         then (Option.empty, ended)
         else (Option(next), next == EOS)
       ).defined
+
+    /**
+     * @return a new [[FiniteStream FiniteStream]] obtained by
+     *         considering only the [[FiniteEvent.Event Event]]s
+     *         of this [[FiniteStream FiniteStream]].
+     * @example {{{
+     *   s:        | E(0) E(1) E(2) E(3) EOS
+     *   s.events: | E(0) E(1) E(2) E(3)
+     *   ------------------------------------> t
+     * }}}
+     */
+    def events: FiniteStream[A] = self.filter(_ != EOS)
+
+    /**
+     * @return a new [[FiniteStream FiniteStream]] obtained by
+     *         considering only the [[FiniteEvent.EOS EOS]] of
+     *         this [[FiniteStream FiniteStream]].
+     * @example {{{
+     *   s:     | E(0) E(1) E(2) E(3) EOS
+     *   s.eos: |                     EOS
+     *   ---------------------------------> t
+     * }}}
+     */
+    def eos: FiniteStream[A] = self.filter(_ == EOS)
+
+    /**
+     * @return a new empty [[Future]] completing when this
+     *         [[FiniteStream FiniteStream]] fires its next
+     *         [[FiniteEvent.EOS EOS]] event.
+     * @note multiple call to this method will yield different
+     *       instances of [[Future]]s.
+     */
+    def termination: Future[Unit] =
+      val end: Promise[Unit] = Promise()
+      self.eos.listenOnce(_ => end.success(()))
+      end.future
 
     /**
      * @param mapper the specified mapping function.

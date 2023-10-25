@@ -1,13 +1,9 @@
 package it.unibo.distributedfrp.core
 
-import org.scalatest.*
-import flatspec.*
-import matchers.*
-import it.unibo.distributedfrp.core.Slot._
+import it.unibo.distributedfrp.core.Slot.*
+import it.unibo.distributedfrp.test.utils.AbstractTest
 
-import scala.annotation.targetName
-
-class ExportTreeTests extends AnyFlatSpec with should.Matchers:
+class ExportTreeTests extends AbstractTest:
   "An export tree" should "have the given root" in {
     ExportTree(1).root should be (1)
   }

@@ -1,14 +1,13 @@
-package it.unibo.distributedfrp.utils
+package it.unibo.distributedfrp.test.utils.time
 
-import it.unibo.distributedfrp.utils.mock.MockClock
-import org.scalatest.BeforeAndAfter
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import it.unibo.distributedfrp.test.utils.AbstractTest
+import it.unibo.distributedfrp.test.utils.time.StopWatch
+import it.unibo.distributedfrp.test.utils.mock.clock.MockClock
 
 import scala.concurrent.duration.*
 
 /** Test for [[StopWatch]]. */
-class StopWatchTest extends AnyFlatSpec with should.Matchers with BeforeAndAfter:
+class StopWatchTest extends AbstractTest:
   private given clock: MockClock = MockClock()
 
   /**

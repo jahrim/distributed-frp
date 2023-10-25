@@ -1,16 +1,15 @@
-package it.unibo.distributedfrp.utils.mock
+package it.unibo.distributedfrp.test.utils.mock.timer
 
 import it.unibo.distributedfrp.frp.timer.*
-import it.unibo.distributedfrp.utils.StopWatch
-import it.unibo.distributedfrp.utils.mock.{MockClockScheduler, MockTimerFactory}
-import org.scalatest.BeforeAndAfter
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import it.unibo.distributedfrp.test.utils.AbstractTest
+import it.unibo.distributedfrp.test.utils.mock.timer.MockTimerFactory
+import it.unibo.distributedfrp.test.utils.mock.clock.MockClockScheduler
+import it.unibo.distributedfrp.test.utils.time.StopWatch
 
 import scala.concurrent.duration.*
 
 /** Test for [[MockTimerFactory]]. */
-class MockTimerFactoryTest extends AnyFlatSpec with should.Matchers with BeforeAndAfter:
+class MockTimerFactoryTest extends AbstractTest:
   private given scheduler: MockClockScheduler = MockClockScheduler()
   private var stopWatch: StopWatch = StopWatch.basic
 

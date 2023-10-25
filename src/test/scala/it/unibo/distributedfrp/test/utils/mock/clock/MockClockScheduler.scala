@@ -1,8 +1,8 @@
-package it.unibo.distributedfrp.utils.mock
+package it.unibo.distributedfrp.test.utils.mock.clock
 
+import it.unibo.distributedfrp.test.utils.mock.clock.MockClockScheduler.*
+import it.unibo.distributedfrp.test.utils.mock.clock.{MockClock, MockClockScheduler}
 import it.unibo.distributedfrp.utils.Clock
-import it.unibo.distributedfrp.utils.mock.MockClockScheduler.*
-import it.unibo.distributedfrp.utils.mock.{MockClock, MockClockScheduler}
 
 import scala.annotation.tailrec
 import scala.collection.mutable

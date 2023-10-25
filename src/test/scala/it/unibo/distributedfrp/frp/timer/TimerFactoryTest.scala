@@ -1,16 +1,15 @@
 package it.unibo.distributedfrp.frp.timer
 
 import it.unibo.distributedfrp.frp.timer.*
-import it.unibo.distributedfrp.utils.{Clock, StopWatch}
-import org.scalatest.BeforeAndAfter
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import it.unibo.distributedfrp.test.utils.AbstractTest
+import it.unibo.distributedfrp.test.utils.time.StopWatch
+import it.unibo.distributedfrp.utils.Clock
 
 import java.util.concurrent.{Executors, ScheduledExecutorService}
 import scala.concurrent.duration.*
 
 /** Test for [[TimerFactory]]. */
-class TimerFactoryTest extends AnyFlatSpec with should.Matchers with BeforeAndAfter:
+class TimerFactoryTest extends AbstractTest:
   private given clock: Clock = Clock.SystemClock
   private val timeout: FiniteDuration = 30.seconds
   private var stopWatch: StopWatch = StopWatch.basic

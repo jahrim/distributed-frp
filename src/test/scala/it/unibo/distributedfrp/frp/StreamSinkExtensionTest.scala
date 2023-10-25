@@ -1,31 +1,37 @@
 package it.unibo.distributedfrp.frp
 
 import it.unibo.distributedfrp.frp.StreamExtension.*
-import it.unibo.distributedfrp.frp.StreamSinkExtension.{*, given}
-import it.unibo.distributedfrp.utils.Symbols
-import nz.sodium
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import it.unibo.distributedfrp.frp.StreamSinkExtension.*
+import it.unibo.distributedfrp.test.utils.AbstractTest
 
 /** Test for [[StreamSinkExtension]]. */
-class StreamSinkExtensionTest
-  extends AnyFlatSpec
-    with should.Matchers
-    with Symbols
-    with StreamSampleLoader:
+class StreamSinkExtensionTest extends AbstractTest:
   private val SendShortcut = symbol("!")
 
+  import nz.sodium.StreamSink as Sink
+
+  /**
+   * As [[Stream.monitor]], but returns a pair containing the
+   * [[Stream Stream]] itself as first parameter and its
+   * [[StreamMonitor]] as second parameter.
+   */
+  private def monitor[A, S <: Stream[A]](
+    stream: S,
+    memory: Int = Int.MaxValue
+  ): (S, StreamMonitor[A, S]) =
+    (stream, Stream.monitor(stream, memory))
+
   SendShortcut should "make a stream sink produce a sequence of events" in {
-    val (sink, monitor) = Stream.monitor(sodium.StreamSink[Int]())
+    val (sink, sinkMonitor) = monitor(Sink[Int]())
     sink ! 0
     sink ! (1, 2, 3)
-    monitor.eventLog shouldEqual Seq(0, 1, 2, 3)
+    sinkMonitor.eventLog shouldEqual Seq(0, 1, 2, 3)
   }
 
   it should "make a pair of streams produce a sequence of pairs of simultaneous events" in {
-    val (sink1, monitor1) = Stream.monitor(sodium.StreamSink[Int]())
-    val (sink2, monitor2) = Stream.monitor(sodium.StreamSink[String]())
-    val (_, andMonitor) = Stream.monitor(sink1 and sink2)
+    val (sink1, monitor1) = monitor(Sink[Int]())
+    val (sink2, monitor2) = monitor(Sink[String]())
+    val (_, andMonitor) = monitor(sink1 and sink2)
     sink1 ! (1, 2, 3)
     sink2 ! ("a", "b", "c")
     (sink1, sink2) ! ((4, "d"), (5, "e"))
@@ -35,14 +41,14 @@ class StreamSinkExtensionTest
   }
 
   it should "make a triplet of streams produce a sequence of triplets of simultaneous events" in {
-    def flattenToTriplet[A,B,C](pair: ((A,B),C)): (A,B,C) = (pair._1._1, pair._1._2, pair._2)
-    val (sink1, monitor1) = Stream.monitor(sodium.StreamSink[Int]())
-    val (sink2, monitor2) = Stream.monitor(sodium.StreamSink[String]())
-    val (sink3, monitor3) = Stream.monitor(sodium.StreamSink[Boolean]())
-    val (_, monitor12) = Stream.monitor(sink1 and sink2)
-    val (_, monitor13) = Stream.monitor(sink1 and sink3)
-    val (_, monitor23) = Stream.monitor(sink2 and sink3)
-    val (_, monitor123) = Stream.monitor((sink1 and sink2 and sink3).map(flattenToTriplet(_)))
+    def flattenToTuple3[A,B,C](pair: ((A,B),C)): (A,B,C) = (pair._1._1, pair._1._2, pair._2)
+    val (sink1, monitor1) = monitor(Sink[Int]())
+    val (sink2, monitor2) = monitor(Sink[String]())
+    val (sink3, monitor3) = monitor(Sink[Boolean]())
+    val (_, monitor12) = monitor(sink1 and sink2)
+    val (_, monitor13) = monitor(sink1 and sink3)
+    val (_, monitor23) = monitor(sink2 and sink3)
+    val (_, monitor123) = monitor((sink1 and sink2 and sink3).map(flattenToTuple3(_)))
 
     sink1 ! (1, 2, 3)
     sink2 ! ("a", "b", "c")
