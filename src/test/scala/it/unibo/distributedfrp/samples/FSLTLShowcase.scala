@@ -137,10 +137,43 @@ object FSLTLShowcase:
     val alwaysLessThan100: AsyncEvaluation = computation.check(using LTL)(always(lt(100)))
 
     /** Run simulation. */
-    computation.termination.onComplete(_ => println("Termination completed! (this should not be printed)"))
+    computation.listen(event => println(event))
     simulation.start()
     Await.result(alwaysLessThan100, 10.seconds)
     simulation.stop()   // commenting this will keep the simulation going after failure
+    println(s"# Properties:")
+    println(s"- Always less than 100: ${alwaysLessThan100.value}")
+    println(s"# Latest Computation After Failure:")
+    println(computationMonitor.eventLog.last)
+
+  @main def stopInfiniteSimulation(): Unit =
+    /** Prepare simulator. */
+    val environment = Environment.euclideanGrid(3, 3)
+    val incarnation = new SimulationIncarnation(environment)
+    val simulator: Simulator[SimulationIncarnation] = BasicSimulator(incarnation)
+    import simulator.{*, given}
+
+    /** Prepare simulation. */
+    def countToInfinite: Flow[Int] = loop(0)(_.map(_ + 1))
+    val simulation: Simulation[Int] = simulator.simulation(countToInfinite)
+    // only potentially finite, but actually infinite (no termination condition is specified)
+    val computation: FiniteStream[Int] = simulation.computedBy(0).finite
+    val computationMonitor = Stream.monitor(computation, memory = 1)
+
+    /** Prepare logic. */
+    given ExecutionContext = ExecutionContext.global
+
+    object LTL extends FSLTL with PriestLogic with FSLTL.DSL with FSLTL.Shorthands with FirstOrderLogic.Comparisons
+    import LTL.*
+
+    /** Configure the evaluation of custom properties. */
+    val alwaysLessThan100: AsyncEvaluation = computation.check(using LTL)(always(lt(100)))
+
+    /** Run simulation. */
+    computation.listen(event => println(event))
+    simulation.start()
+    Await.result(alwaysLessThan100, 10.seconds)
+    simulation.stop() // commenting this will keep the simulation going forever after failure
     println(s"# Properties:")
     println(s"- Always less than 100: ${alwaysLessThan100.value}")
     println(s"# Latest Computation After Failure:")
