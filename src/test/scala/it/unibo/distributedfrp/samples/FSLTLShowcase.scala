@@ -115,7 +115,7 @@ object FSLTLShowcase:
     println(s"- Convergence to expectation: ${convergence.value}")
     simulation.stop()
 
-  @main def stopSimulationOnFailureASAP(): Unit =
+  @main def stopSimulationAfterEvaluationASAP(): Unit =
     /** Prepare simulator. */
     val environment = Environment.euclideanGrid(3, 3)
     val incarnation = new SimulationIncarnation(environment)
@@ -140,13 +140,13 @@ object FSLTLShowcase:
     computation.listen(event => println(event))
     simulation.start()
     Await.result(alwaysLessThan100, 10.seconds)
-    simulation.stop()   // commenting this will keep the simulation going after failure
+    simulation.stop()   // commenting this will keep the simulation going after the evaluation
     println(s"# Properties:")
     println(s"- Always less than 100: ${alwaysLessThan100.value}")
     println(s"# Latest Computation After Failure:")
     println(computationMonitor.eventLog.last)
 
-  @main def stopInfiniteSimulation(): Unit =
+  @main def stopInfiniteSimulationAfterEvaluationASAP(): Unit =
     /** Prepare simulator. */
     val environment = Environment.euclideanGrid(3, 3)
     val incarnation = new SimulationIncarnation(environment)
@@ -173,7 +173,7 @@ object FSLTLShowcase:
     computation.listen(event => println(event))
     simulation.start()
     Await.result(alwaysLessThan100, 10.seconds)
-    simulation.stop() // commenting this will keep the simulation going forever after failure
+    simulation.stop() // commenting this will keep the simulation going forever after the evaluation
     println(s"# Properties:")
     println(s"- Always less than 100: ${alwaysLessThan100.value}")
     println(s"# Latest Computation After Failure:")
