@@ -8,8 +8,8 @@ import java.util.concurrent.{ExecutorService, Executors}
 /**
  * A basic implementation of a [[Simulator]].
  *
- * @param incarnation the [[Incarnation]] for which this [[BasicSimulator]] is capable of
- *                    configuring [[Simulator.Simulation Simulation]]s.
+ * @param incarnation the [[SimulationIncarnation]] for which this [[BasicSimulator]]
+ *                    is capable of configuring [[Simulator.Simulation Simulation]]s.
  */
 class BasicSimulator(override val incarnation: SimulationIncarnation)
   extends Simulator[SimulationIncarnation]:
