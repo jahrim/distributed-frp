@@ -21,7 +21,7 @@ trait StreamSampleTest extends AbstractTest:
   protected def testSample[A, SS](
     sample: StreamSample[SS],
     elaboration: SS => Stream[A],
-    expectation: Seq[A] = Seq()
+    expectation: Seq[A]
   ): Unit =
     val streamMonitor = Stream.monitor(elaboration(sample.streams))
     sample.generateEvents()
