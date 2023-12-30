@@ -1,5 +1,6 @@
-package it.unibo.distributedfrp.core
+package it.unibo.distributedfrp.test.utils.mock.incarnation
 
+import it.unibo.distributedfrp.core.Incarnation
 import it.unibo.distributedfrp.frp.IncrementalCellSink
 import nz.sodium.{Cell, CellSink}
 

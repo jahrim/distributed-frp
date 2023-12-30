@@ -3,9 +3,9 @@ package it.unibo.distributedfrp.core
 import nz.sodium.CellSink
 import it.unibo.distributedfrp.utils.Liftable.*
 import it.unibo.distributedfrp.core.Slot.*
-import it.unibo.distributedfrp.test.utils.AbstractTest
+import it.unibo.distributedfrp.test.utils.mock.incarnation.MockIncarnation
 
-class SemanticsTests extends AbstractTest:
+class SemanticsTest extends FraspTest:
   private val SELF_ID = 1
   private val NEIGHBORS = Set(1, 2, 3, 4)
   private val PATH = Seq.empty

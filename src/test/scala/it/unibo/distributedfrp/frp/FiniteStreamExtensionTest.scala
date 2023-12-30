@@ -15,7 +15,7 @@ class FiniteStreamExtensionTest extends StreamSampleTest:
   private val Finite = symbol("finite")
   private val Events = symbol("events")
   private val Eos = symbol("eos")
-  private val Termination = symbol("Termination")
+  private val Termination = symbol("termination")
   private val MapPayload = symbol("mapPayload")
   private val FilterPayload = symbol("filterPayload")
   private val Until = symbol("until")

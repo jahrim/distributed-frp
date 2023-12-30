@@ -1,9 +1,8 @@
 package it.unibo.distributedfrp.core
 
 import it.unibo.distributedfrp.core.Slot.*
-import it.unibo.distributedfrp.test.utils.AbstractTest
 
-class ExportTreeTests extends AbstractTest:
+class ExportTreeTest extends FraspTest:
   "An export tree" should "have the given root" in {
     ExportTree(1).root should be (1)
   }
