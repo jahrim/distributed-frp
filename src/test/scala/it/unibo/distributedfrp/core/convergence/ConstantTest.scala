@@ -1,32 +1,26 @@
 package it.unibo.distributedfrp.core.convergence
 
 /** A [[ConvergenceTest]] for the constant construct. */
-class ConstantTest extends ConvergenceTest:
-  private val simulator = ConvergenceSimulator.DSL.default
-  import simulator.{*, given}
-
+class ConstantTest extends ConvergenceTest.WithDefaults:
   private val Constant = symbol("constant")
 
-  Constant should "compute the specified value for each device" in
-    Seq("A", "B", "C").foreach(value =>
+  import defaultSimulator.incarnation.{*, given}
+
+  Constant should "compute the specified integer value for each device" in
+    Seq(0, 1, 2).foreach(integer =>
       convergenceTest(
-        simulator = simulator,
-        flow = constant(value),
-        limit = Map(
-          0 -> value, 1 -> value, 2 -> value,
-          3 -> value, 4 -> value, 5 -> value,
-          6 -> value, 7 -> value, 8 -> value
-        )
+        simulator = defaultSimulator,
+        flow = constant(integer),
+        limit = Seq.range(0, 9).map(_ -> integer).toMap
       )
     )
 
-  it should "not compute any value different from the specified value" in convergenceTest(
-    simulator = simulator,
-    flow = constant("A"),
-    limit = Map(
-      0 -> "A", 1 -> "A", 2 -> "A",
-      3 -> "A", 4 -> "A", 5 -> "A",
-      6 -> "A", 7 -> "A", 8 -> "OtherValue"
-    ),
-    expectation = false
-  )
+  private case class CustomObject(value: Int)
+  it should "compute the specified custom value for each device" in
+    Seq(0, 1, 2).map(CustomObject.apply).foreach(customValue =>
+      convergenceTest(
+        simulator = defaultSimulator,
+        flow = constant(customValue),
+        limit = Seq.range(0, 9).map(_ -> customValue).toMap
+      )
+    )

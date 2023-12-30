@@ -4,15 +4,19 @@ import it.unibo.distributedfrp.core.Incarnation
 import it.unibo.distributedfrp.frp.FrpExtensions.{*, given}
 import it.unibo.distributedfrp.frp.StreamExtension.*
 import it.unibo.distributedfrp.frp.StreamSinkExtension.StreamSink
+import it.unibo.distributedfrp.simulation.incarnation.SimulationIncarnation
 import nz.sodium
 
 /**
- * A simulator capable of configuring simulations for a specific [[Incarnation]].
+ * A simulator capable of configuring simulations for a specific [[SimulationIncarnation]].
  */
-trait Simulator[I <: Incarnation]:
-  /** The [[Incarnation]] for which this [[Simulator]] is capable of configuring [[Simulation Simulation]]s. */
+trait Simulator[I <: SimulationIncarnation]:
+  /**
+   * The [[SimulationIncarnation]] for which this [[Simulator]] is capable of
+   * configuring [[Simulation Simulation]]s.
+   */
   val incarnation: I
-  export incarnation.{*, given}
+  import incarnation.{*, given}
 
   /**
    * The [[Export Export]] of a specific [[incarnation.Context Device]]
@@ -36,13 +40,15 @@ trait Simulator[I <: Incarnation]:
   type CollectiveResultMap[+A] = Map[DeviceId, A]
 
   /**
-   * Configure a new [[Simulation Simulation]] for executing the specified [[Flow]].
+   * Configure a new [[Simulation Simulation]] for executing the specified [[Flow]]
+   * in the specified [[Environment]].
    *
-   * @param flow the specified [[incarnation.Flow Flow]].
+   * @param flow        the specified [[incarnation.Flow Flow]].
+   * @param environment the specified [[Environment]].
    * @tparam A the type of results produced by the specified [[incarnation.Flow Flow]].
    * @return a new [[Simulation Simulation]] for executing the specified [[Flow]].
    */
-  def simulation[A](flow: Flow[A]): Simulation[A]
+  def simulation[A](flow: Flow[A])(using environment: Environment): Simulation[A]
 
   /**
    * A simulation that executes a [[Flow]], letting the user observe its execution.
