@@ -19,6 +19,14 @@ object HaltPolicy:
   def none[E]: HaltPolicy[E] = _.finite
 
   /**
+   * @param interruptStream the specified [[Stream Stream]].
+   * @return an [[HaltPolicy HaltPolicy]] that stops the execution of a flow when
+   *         the specified [[Stream Stream]] fires an event.
+   */
+  def haltByInterrupt[E](interruptStream: Stream[?]): HaltPolicy[E] =
+    _.finite.interruptBy(interruptStream)
+
+  /**
    * @param duration the specified [[FiniteDuration]].
    * @return an [[HaltPolicy HaltPolicy]] that stops the execution of a flow after
    *         the specified [[FiniteDuration]].
