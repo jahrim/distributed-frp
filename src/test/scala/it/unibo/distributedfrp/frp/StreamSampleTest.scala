@@ -1,8 +1,8 @@
 package it.unibo.distributedfrp.frp
 
+import it.unibo.distributedfrp.AbstractTest
 import it.unibo.distributedfrp.frp.StreamExtension.Stream
 import it.unibo.distributedfrp.frp.StreamSample
-import it.unibo.distributedfrp.test.utils.AbstractTest
 
 /** A test for [[Stream Stream]] functionalities, checked against [[StreamSample]]s. */
 trait StreamSampleTest extends AbstractTest:

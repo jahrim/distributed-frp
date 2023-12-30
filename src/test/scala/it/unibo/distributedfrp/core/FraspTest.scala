@@ -1,7 +1,6 @@
 package it.unibo.distributedfrp.core
 
-import it.unibo.distributedfrp.test.utils.AbstractTest
-import it.unibo.distributedfrp.utils
+import it.unibo.distributedfrp.{AbstractTest, utils}
 
 import scala.concurrent.ExecutionContext
 

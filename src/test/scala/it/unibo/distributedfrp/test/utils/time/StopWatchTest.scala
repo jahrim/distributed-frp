@@ -1,6 +1,6 @@
 package it.unibo.distributedfrp.test.utils.time
 
-import it.unibo.distributedfrp.test.utils.AbstractTest
+import it.unibo.distributedfrp.AbstractTest
 import it.unibo.distributedfrp.test.utils.time.StopWatch
 import it.unibo.distributedfrp.test.utils.mock.clock.MockClock
 

@@ -1,7 +1,7 @@
 package it.unibo.distributedfrp.test.utils.mock.timer
 
+import it.unibo.distributedfrp.AbstractTest
 import it.unibo.distributedfrp.frp.timer.*
-import it.unibo.distributedfrp.test.utils.AbstractTest
 import it.unibo.distributedfrp.test.utils.mock.timer.MockTimerFactory
 import it.unibo.distributedfrp.test.utils.mock.clock.MockClockScheduler
 import it.unibo.distributedfrp.test.utils.time.StopWatch

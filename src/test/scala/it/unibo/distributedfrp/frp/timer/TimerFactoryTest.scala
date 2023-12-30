@@ -1,7 +1,7 @@
 package it.unibo.distributedfrp.frp.timer
 
+import it.unibo.distributedfrp.AbstractTest
 import it.unibo.distributedfrp.frp.timer.*
-import it.unibo.distributedfrp.test.utils.AbstractTest
 import it.unibo.distributedfrp.test.utils.time.StopWatch
 import it.unibo.distributedfrp.utils.Clock
 

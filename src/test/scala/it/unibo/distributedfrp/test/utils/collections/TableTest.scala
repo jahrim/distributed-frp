@@ -1,6 +1,6 @@
 package it.unibo.distributedfrp.test.utils.collections
 
-import it.unibo.distributedfrp.test.utils.AbstractTest
+import it.unibo.distributedfrp.AbstractTest
 import it.unibo.distributedfrp.test.utils.collections.Table
 import it.unibo.distributedfrp.test.utils.collections.Table.*
 

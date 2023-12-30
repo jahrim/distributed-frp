@@ -1,4 +1,4 @@
-package it.unibo.distributedfrp.test.utils
+package it.unibo.distributedfrp
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
