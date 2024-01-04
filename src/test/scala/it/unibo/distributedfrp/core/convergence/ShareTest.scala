@@ -29,8 +29,7 @@ class ShareTest extends ConvergenceTest.WithDefaults:
     limit = Seq.range(0, 9).map(_ -> 10).toMap
   )
 
-  // TODO why does this test fail?
-  private def parallelSharedCount(from: Int, to: Int, step: Int = 0): Flow[(Int, Int)] =
+  private def parallelSharedCount(from: Int, to: Int, step: Int = 1): Flow[(Int, Int)] =
     lift(sharedCount(from, to, step), sharedCount(from, to, step))(_ -> _)
   it should "work in parallel with other share constructs" in convergenceTest(
     simulator = defaultSimulator,
