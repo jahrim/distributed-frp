@@ -21,7 +21,7 @@ object Environment:
   def singleNode: Environment = new Environment:
     override def nDevices: Int = 1
     override def position(device: Int): (Double, Double) = (0, 0)
-    override def neighbors(device: Int): Iterable[Int] = Iterable.empty
+    override def neighbors(device: Int): Iterable[Int] = Iterable.single(0)
 
   /**
    * @param cols the specified number of columns.
