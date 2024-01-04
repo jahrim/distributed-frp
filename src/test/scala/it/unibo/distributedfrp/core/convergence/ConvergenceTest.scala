@@ -18,7 +18,7 @@ trait ConvergenceTest extends FraspTest:
    *  - [[Expectation.Convergent]]: the test will succeed if the convergence hold.
    *  - [[Expectation.Divergent]]: the test will succeed if the convergence does not hold.
    */
-  enum Expectation { case Convergent, Divergent }
+  protected enum Expectation { case Convergent, Divergent }
 
   /** The default timeout when awaiting the convergence of flows. */
   protected def defaultTimeout: Duration
@@ -39,7 +39,7 @@ trait ConvergenceTest extends FraspTest:
    *                    executed and for which the test should succeed.
    * @tparam A the type of the results computed by the specified [[Flow Flow]].
    */
-  def convergenceTest[A, I <: SimulationIncarnation, S <: ConvergenceSimulator[I]](
+  protected def convergenceTest[A, I <: SimulationIncarnation, S <: ConvergenceSimulator[I]](
     simulator: S,
     flow: simulator.incarnation.Environment ?=> simulator.incarnation.Flow[A],
     limit: simulator.CollectiveResultMap[A],
@@ -71,7 +71,7 @@ trait ConvergenceTest extends FraspTest:
    *                    executed and for which the test should succeed.
    * @tparam A the type of the results computed by the specified [[Flow Flow]]s.
    */
-  def convergentEquivalenceTest[A, I <: SimulationIncarnation, S <: ConvergenceSimulator[I]](
+  protected def convergentEquivalenceTest[A, I <: SimulationIncarnation, S <: ConvergenceSimulator[I]](
     simulator: S,
     flows: Seq[simulator.incarnation.Environment ?=> simulator.incarnation.Flow[A]],
     expectation: Expectation = Expectation.Convergent,

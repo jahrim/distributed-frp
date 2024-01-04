@@ -36,7 +36,7 @@ class BranchTest extends ConvergenceTest.WithDefaults:
     val thenValue = collectSortedNeighbors
     val elseValue = collectSortedNeighbors
     branch(mid.map(boundary)){ thenValue }{ elseValue }
-  // @see Related issue: https://github.com/cric96/distributed-frp/issues/1
+  // TODO Related issue: https://github.com/cric96/distributed-frp/issues/1
   it should "not split the network of the devices into subnetworks retroactively" in convergentEquivalenceTest(
     simulator = defaultSimulator,
     flows = Seq(

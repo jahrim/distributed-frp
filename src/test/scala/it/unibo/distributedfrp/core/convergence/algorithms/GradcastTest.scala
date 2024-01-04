@@ -30,8 +30,8 @@ class GradcastTest extends ConvergenceTest.WithDefaults:
     simulator = defaultSimulator,
     flow = gradientPartition(centroids = Set(0, 6, 24)),
     limit = Map(
-      0 -> Some(0),  1 -> Some(0),  2 -> Some(6),   3 -> Some(6),   4 -> Some(6),
-      5 -> Some(0),  6 -> Some(6),  7 -> Some(6),   8 -> Some(6),   9 -> Some(6),
+       0 -> Some(0),  1 -> Some(0),  2 -> Some(6),   3 -> Some(6),   4 -> Some(6),
+       5 -> Some(0),  6 -> Some(6),  7 -> Some(6),   8 -> Some(6),   9 -> Some(6),
       10 -> Some(6), 11 -> Some(6), 12 -> Some(6),  13 -> Some(6),  14 -> Some(24),
       15 -> Some(6), 16 -> Some(6), 17 -> Some(6),  18 -> Some(24), 19 -> Some(24),
       20 -> Some(6), 21 -> Some(6), 22 -> Some(24), 23 -> Some(24), 24 -> Some(24),
