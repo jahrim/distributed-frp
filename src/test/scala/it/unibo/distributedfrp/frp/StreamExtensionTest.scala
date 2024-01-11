@@ -32,7 +32,7 @@ class StreamExtensionTest extends StreamSampleTest:
   private val And = symbol("and")
   private val Sync = symbol("sync")
   private val ThrottleWith = symbol("throttleWith")
-  private val ThrottleBy = symbol("throttleBy")
+  private val Throttle = symbol("throttle")
 
   import scala.{None as N, Some as Y}
   private given clock: MockClockScheduler = MockClockScheduler()
@@ -59,7 +59,7 @@ class StreamExtensionTest extends StreamSampleTest:
   CollectLazy should s"behave as the legacy `collectLazy`" in {
     val (sample, s) = loadSample(intSample)
     val collectMonitor =
-      Stream.monitor(s.collectLazy(0)((n, s) => { val ns = n + s; (ns, ns) }))
+      Stream.monitor(s.collect(0)((n, s) => { val ns = n + s; (ns, ns) }))
     val legacyCollectMonitor =
       Stream.monitor(s.collectLazy(sodium.Lazy(0), (n, s) => { val ns = n + s; sodium.Tuple2(ns, ns) }))
     sample.generateEvents()
@@ -471,10 +471,10 @@ class StreamExtensionTest extends StreamSampleTest:
     ),
   )
 
-  ThrottleBy should
+  Throttle should
     "limit the event production rate (EPR) of a stream to the EPR of a throttler, " +
     "ignoring the content of the events of the throttler" in testSample(
     sample = bistreamBitypedLongSample,
-    elaboration = (s1, s2) => s1 throttleBy s2,
+    elaboration = (s1, s2) => s1 throttle s2,
     expectation = Seq(2, 3, 4, 5),
   )

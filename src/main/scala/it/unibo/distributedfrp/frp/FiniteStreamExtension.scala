@@ -96,7 +96,7 @@ object FiniteStreamExtension:
      * }}}
      */
     private def finiteOnce: FiniteStream[A] =
-      self.collectLazy(false)((next, ended) =>
+      self.collect(false)((next, ended) =>
         if ended
         then (Option.empty, ended)
         else (Option(next), next == EOS)
@@ -305,7 +305,7 @@ object FiniteStreamExtension:
       using timerFactory: TimerFactory[?] = TimerFactory.async
     ): FiniteStream[A] =
       val timer: Timer = timerFactory.create(duration)
-      self.collectLazy(timer)((next, timer) => (next, timer.reset())).interruptBy(timer.ticks)
+      self.collect(timer)((next, timer) => (next, timer.reset())).interruptBy(timer.ticks)
   }
 
   extension [A, Time: Ordering](self: Stream[(FiniteEvent[A], Time)]){
