@@ -14,7 +14,7 @@ trait MockIncarnation extends Incarnation:
   def initialLocalSensors(selfId: DeviceId): Map[LocalSensorId, Any]
   def initialNeighborSensors(selfId: DeviceId, neighborId: DeviceId): Map[NeighborSensorId, Any]
 
-  override def context(selfId: DeviceId): Context = MockContext(selfId, initialLocalSensors(selfId))
+  def context(selfId: DeviceId): Context = MockContext(selfId, initialLocalSensors(selfId))
 
   case class MockNeighborState(exported: Export[Any], sensors: Map[NeighborSensorId, Any]) extends BasicNeighborState:
     override def sensor[A](id: NeighborSensorId): A = sensors(id).asInstanceOf[A]

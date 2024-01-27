@@ -11,7 +11,6 @@ import scala.concurrent.duration.*
 /** Test for [[TimerFactory]]. */
 class TimerFactoryTest extends AbstractTest:
   private given clock: Clock = Clock.SystemClock
-  private val timeout: FiniteDuration = 30.seconds
   private var stopWatch: StopWatch = StopWatch.basic
 
   before { this.stopWatch = StopWatch.basic.start() }
@@ -28,7 +27,7 @@ class TimerFactoryTest extends AbstractTest:
     val timer: Timer = timerFactory.create(100.milliseconds)
     timer.ticks.listen(_ => stopWatch.lap())
     scheduler.shutdown()
-    scheduler.awaitTermination(timeout.length, timeout.unit)
+    scheduler.awaitTermination(Defaults.timeout.length, Defaults.timeout.unit)
     stopWatch.laps should have size 1
     stopWatch.laps.head should be >= timer.duration
   }
@@ -40,7 +39,7 @@ class TimerFactoryTest extends AbstractTest:
     val resetTime: FiniteDuration = 50.milliseconds
     timer.ticks.listen(_ => stopWatch.lap())
     scheduler.schedule[Unit](() => { timer.reset(); scheduler.shutdown() }, resetTime.length, resetTime.unit)
-    scheduler.awaitTermination(timeout.length, timeout.unit)
+    scheduler.awaitTermination(Defaults.timeout.length, Defaults.timeout.unit)
     stopWatch.laps should have size 1
     stopWatch.laps.head should be >= (resetTime + timer.duration)
   }
@@ -52,7 +51,7 @@ class TimerFactoryTest extends AbstractTest:
     val resetTime: FiniteDuration = 200.milliseconds
     timer.ticks.listen(_ => stopWatch.lap())
     scheduler.schedule[Unit](() => { timer.reset(); scheduler.shutdown() }, resetTime.length, resetTime.unit)
-    scheduler.awaitTermination(timeout.length, timeout.unit)
+    scheduler.awaitTermination(Defaults.timeout.length, Defaults.timeout.unit)
     stopWatch.laps should have size 2
     stopWatch.laps.head should be >= timer.duration
     stopWatch.laps(1) should be >= (resetTime + timer.duration)

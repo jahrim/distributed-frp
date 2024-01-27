@@ -64,56 +64,63 @@ trait SimulationIncarnation extends Incarnation:
   def registerNeighborSensors(sensors: (NeighborSensorId, SimulationNeighborSensor[?])*): Unit =
     this.neighborSensors = this.neighborSensors ++ sensors
 
-  /**
-   * A device in a FRASP simulation.
-   *
-   * @param selfId      the identifier of this device.
-   * @param environment the environment where this device is situated.
-   */
-  class SimulationContext(override val selfId: DeviceId, val environment: Environment) extends BasicContext:
-    private val neighborsSink = new IncrementalCellSink[Map[DeviceId, NeighborState]](Map.empty, calm = true)
-    override def neighbors: Cell[Map[DeviceId, NeighborState]] = this.neighborsSink.cell
+  /** A device in a FRASP simulation. */
+  trait SimulationContext extends BasicContext:
+    /** @return the environment where this device is situated. */
+    def environment: Environment
     override def sensor[A](id: LocalSensorId): Cell[A] = findLocalSensor[A](id).sense(owner = this)
-    def receiveExport(neighborId: DeviceId, exported: Export[Any]): Unit =
-      this.neighborsSink.update(_ + (neighborId -> SimulationNeighborState(selfId, neighborId, exported, environment)))
     private def findLocalSensor[A](id: LocalSensorId): SimulationLocalSensor[A] =
       localSensors.getOrElse(id, throw SensorNotFoundException(
         s"Sensor $id not found among the registered local sensors: $localSensors."
       )).asInstanceOf[SimulationLocalSensor[A]]
 
-  /**
-   * The state of a neighbor of a specific device.
-   *
-   * @param selfId      the identifier of the device observing its neighboring devices.
-   * @param neighborId  the identifier of the neighboring device.
-   * @param exported    the computation of the neighboring device.
-   * @param environment the [[Environment]] where both devices are situated.
-   */
-  case class SimulationNeighborState(
-    selfId: DeviceId,
-    neighborId: DeviceId,
-    exported: Export[Any],
-    environment: Environment,
-  ) extends BasicNeighborState:
+  /** Companion object of [[SimulationContext SimulationContext]]. */
+  object SimulationContext:
+    def apply(
+      selfId: DeviceId,
+      neighbors: Cell[Map[DeviceId, NeighborState]],
+      environment: Environment
+    ): SimulationContext =
+      BasicSimulationContext(selfId, neighbors, environment)
+
+    /** Basic implementation of [[SimulationContext SimulationContext]]. */
+    private case class BasicSimulationContext(
+      override val selfId: DeviceId,
+      override val neighbors: Cell[Map[DeviceId, NeighborState]],
+      override val environment: Environment
+    ) extends SimulationContext
+
+  /** The state of a neighbor of a specific device. */
+  trait SimulationNeighborState extends BasicNeighborState:
+    /** @return the identifier of the device observing its neighboring devices. */
+    def selfId: DeviceId
+    /** @return the identifier of the neighboring device. */
+    def neighborId: DeviceId
+    /** @return the [[Environment]] where both devices are situated. */
+    def environment: Environment
     override def sensor[A](id: NeighborSensorId): A = findNeighborSensor[A](id).sense(neighborState = this)
     private def findNeighborSensor[A](id: NeighborSensorId): SimulationNeighborSensor[A] =
       neighborSensors.getOrElse(id, throw SensorNotFoundException(
         s"Sensor $id not found among the registered neighbor sensors: $neighborSensors."
       )).asInstanceOf[SimulationNeighborSensor[A]]
 
-  /**
-   * TODO consider changing the design of Incarnation.context(DeviceId)
-   *      (move up the concept of environment by one abstraction layer)?
-   */
-  override def context(selfId: DeviceId): Context =
-    throw UnsupportedOperationException("A device should be situated in an environment.")
-  /**
-   * @param selfId      the specified identifier.
-   * @param environment the specified [[Environment Environment]].
-   * @return a new device with the specified identifier situated in the
-   *         specified [[Environment Environment]].
-   */
-  def context(selfId: DeviceId, environment: Environment): Context = SimulationContext(selfId, environment)
+  /** Companion object of [[SimulationNeighborState SimulationNeighborState]]. */
+  object SimulationNeighborState:
+    def apply(
+      selfId: DeviceId,
+      neighborId: DeviceId,
+      exported: Export[Any],
+      environment: Environment
+    ): SimulationNeighborState =
+      BasicSimulationNeighborState(selfId, neighborId, exported, environment)
+
+    /** Companion object of [[SimulationNeighborState SimulationNeighborState]]. */
+    private case class BasicSimulationNeighborState(
+      override val selfId: DeviceId,
+      override val neighborId: DeviceId,
+      override val exported: Export[Any],
+      override val environment: Environment
+    ) extends SimulationNeighborState
 
 /** Companion object [[SimulationIncarnation]]. */
 object SimulationIncarnation:

@@ -1,14 +1,16 @@
 package it.unibo.distributedfrp.core.convergence
 
+import it.unibo.distributedfrp.utils.Liftable.map
+import it.unibo.distributedfrp.utils.LowerBounded
+
 /** A [[ConvergenceTest]] for the max construct. */
-class MaxTest extends ConvergenceTest.WithDefaults:
+class MaxTest extends ConvergenceTest.Defaults.WithStepSimulator:
   private val Max = symbol("max")
   
-  import defaultSimulator.incarnation.{*, given}
+  import DefaultSimulator.incarnation.{*, given}
 
-  private def maxNeighborId: Flow[Int] = nbr(mid).max
   Max should "evaluate the maximum of the computations of the neighboring devices" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = maxNeighborId,
     limit = Map(
       0 -> 4, 1 -> 5, 2 -> 5,
@@ -22,8 +24,9 @@ class MaxTest extends ConvergenceTest.WithDefaults:
     override def lowerBound: CustomId[Int] = CustomId(Int.MinValue)
     override def compare(x: CustomId[Int], y: CustomId[Int]): Int = summon[Ordering[Int]].compare(x.value, y.value)
   private def maxNeighborCustomId: Flow[CustomId[Int]] = nbr(mid.map(CustomId.apply)).max
+
   it should "evaluate the maximum for a custom type given its lower bound" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = maxNeighborCustomId,
     limit = Map(
       0 -> CustomId(4), 1 -> CustomId(5), 2 -> CustomId(5),

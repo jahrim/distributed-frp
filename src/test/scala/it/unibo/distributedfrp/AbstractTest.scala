@@ -4,6 +4,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfter, Inspectors}
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.*
+
 /** Tests in this suite should extend this trait. */
 trait AbstractTest extends AnyFlatSpec with Matchers with BeforeAndAfter with Inspectors:
   /**
@@ -24,3 +27,13 @@ trait AbstractTest extends AnyFlatSpec with Matchers with BeforeAndAfter with In
       case _ => self
   }
 
+  /** A collection of default constants to be used within this test. */
+  object Defaults:
+    /** The default [[ExecutionContext]] for asynchronous computation in this test. */
+    given executor: ExecutionContext = ExecutionContext.global
+
+    /** The default timeout for blocking code in this test. */
+    val timeout: FiniteDuration = 60.seconds
+
+    /** The default [[Double]] precision in this test. */
+    val precision: Int = 2

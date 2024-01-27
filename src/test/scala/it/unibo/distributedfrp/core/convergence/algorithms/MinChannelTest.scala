@@ -1,23 +1,20 @@
 package it.unibo.distributedfrp.core.convergence.algorithms
 
 import it.unibo.distributedfrp.core.convergence.ConvergenceTest
-import it.unibo.distributedfrp.simulation.environment.Environment.euclideanGrid
-import it.unibo.distributedfrp.simulation.environment.{EnvironmentFactory, EnvironmentWithTags}
+import it.unibo.distributedfrp.simulation.environment.{Environment, EnvironmentWithTags}
 
 /** A [[ConvergenceTest]] for the minimum channel algorithm. */
-class MinChannelTest extends ConvergenceTest.WithDefaults:
+class MinChannelTest extends ConvergenceTest.Defaults.WithStepSimulator:
   private val MinChannel = symbol("minChannel")
   private val MinRedundantChannel = symbol("minRedundantChannel")
 
-  import defaultSimulator.incarnation.{*, given}
-  private given EnvironmentFactory[EnvironmentWithTags] = () => EnvironmentWithTags(euclideanGrid(5, 5))
-
-  private def minChannelFromIds(sources: Set[DeviceId], destinations: Set[DeviceId]): Flow[Boolean] =
-    minChannel(mid.map(sources), mid.map(destinations))
+  import DefaultSimulator.incarnation.{Environment as _, *, given}
+  override protected def defaultEnvironment: EnvironmentWithTags =
+    EnvironmentWithTags(Environment.euclideanGrid(5, 5))
 
   private val channel: Boolean = true
   MinChannel should "compute the shortest path from a single source to a single destination" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = minChannelFromIds(sources = Set(0), destinations = Set(24)),
     limit = Map(
        0 -> channel,  1 -> false,    2 -> false,    3 -> false,    4 -> false,
@@ -28,7 +25,7 @@ class MinChannelTest extends ConvergenceTest.WithDefaults:
     )
   )
   it should "compute the shortest path from one of multiple sources to a single destination" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = minChannelFromIds(sources = Set(0, 20), destinations = Set(24)),
     limit = Map(
        0 -> false,    1 -> false,    2 -> false,    3 -> false,    4 -> false,
@@ -39,17 +36,10 @@ class MinChannelTest extends ConvergenceTest.WithDefaults:
     )
   )
 
-  private def minRedundantChannelFromIds(
-    sources: Set[DeviceId],
-    destinations: Set[DeviceId],
-    maxDeviation: Flow[Double]
-  ): Flow[Boolean] =
-    minRedundantChannel(mid.map(sources), mid.map(destinations), maxDeviation)
-
   MinRedundantChannel should
     "compute the shortest paths from a single source to a single destination, " +
     "within a margin of deviation from the actual shortest path" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = minRedundantChannelFromIds(sources = Set(0), destinations = Set(24), maxDeviation = constant(1.0)),
     limit = Map(
        0 -> channel,  1 -> channel,  2 -> false,    3 -> false,    4 -> false,

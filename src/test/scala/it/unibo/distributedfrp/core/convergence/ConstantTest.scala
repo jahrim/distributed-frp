@@ -1,17 +1,17 @@
 package it.unibo.distributedfrp.core.convergence
 
 /** A [[ConvergenceTest]] for the constant construct. */
-class ConstantTest extends ConvergenceTest.WithDefaults:
+class ConstantTest extends ConvergenceTest.Defaults.WithStepSimulator:
   private val Constant = symbol("constant")
 
-  import defaultSimulator.incarnation.{*, given}
+  import DefaultSimulator.incarnation.{*, given}
 
   Constant should "compute the specified integer value for each device" in
     Seq(0, 1, 2).foreach(integer =>
       convergenceTest(
-        simulator = defaultSimulator,
+        simulator = DefaultSimulator,
         flow = constant(integer),
-        limit = Seq.range(0, 9).map(_ -> integer).toMap
+        limit = Seq.range(0, environment.nDevices).map(_ -> integer).toMap
       )
     )
 
@@ -19,8 +19,8 @@ class ConstantTest extends ConvergenceTest.WithDefaults:
   it should "compute the specified custom value for each device" in
     Seq(0, 1, 2).map(CustomObject.apply).foreach(customValue =>
       convergenceTest(
-        simulator = defaultSimulator,
+        simulator = DefaultSimulator,
         flow = constant(customValue),
-        limit = Seq.range(0, 9).map(_ -> customValue).toMap
+        limit = Seq.range(0, environment.nDevices).map(_ -> customValue).toMap
       )
     )

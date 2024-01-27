@@ -3,20 +3,19 @@ package it.unibo.distributedfrp.core.convergence
 import it.unibo.distributedfrp.simulation.incarnation.SimulationIncarnation
 import it.unibo.distributedfrp.simulation.sensors.NeighborSensor
 import it.unibo.distributedfrp.test.utils.collections.Table.*
+import it.unibo.distributedfrp.utils.Liftable.map
 
 /** A [[ConvergenceTest]] for the nbrSensor construct. */
-class NbrSensorTest extends ConvergenceTest.WithDefaults:
+class NbrSensorTest extends ConvergenceTest.Defaults.WithStepSimulator:
   private val NbrSensor = symbol("nbrSensor")
 
-  import defaultSimulator.incarnation.{*, given}
+  import DefaultSimulator.incarnation.{*, given}
 
-  private def collectNeighborDistances(precision: Int): Flow[NeighborField[Double]] =
-    nbrRange.map(_.map(_ -> _.round(precision)))
   NbrSensor should
     "make the devices perceive static relationships with their neighbors" +
     "from their environment" in convergenceTest(
-    simulator = defaultSimulator,
-    flow = collectNeighborDistances(precision = 2),
+    simulator = DefaultSimulator,
+    flow = collectNeighborDistances.map(_.map(_ -> _.round(precision = 2))),
     limit = Map(
       0 -> Map(0 -> 0.00, 1 -> 1.00,            3 -> 1.00, 4 -> 1.41),
       1 -> Map(           1 -> 0.00, 2 -> 1.00, 3 -> 1.41, 4 -> 1.00, 5 -> 1.41),
@@ -39,11 +38,12 @@ class NbrSensorTest extends ConvergenceTest.WithDefaults:
       val neighborPosition: (Double, Double) = neighborState.environment.position(neighborState.neighborId)
       (neighborPosition._1 - selfPosition._1, neighborPosition._2 - selfPosition._2)
   private object Direction extends NeighborSensorId
-  registerNeighborSensors(Direction -> DirectionalSensor.setup(defaultSimulator.incarnation))
+  registerNeighborSensors(Direction -> DirectionalSensor.setup(DefaultSimulator.incarnation))
 
   private def nbrDirection: Flow[NeighborField[(Double, Double)]] = nbrSensor[(Double, Double)](Direction)
+
   it should "let the user define custom sensors" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = nbrDirection,
     limit = Map(
       0 -> Map(0->(0,0),   1->(1,0),               3->(0,1),   4->(1,1)),

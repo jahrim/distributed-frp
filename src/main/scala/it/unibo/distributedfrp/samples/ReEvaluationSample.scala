@@ -1,8 +1,8 @@
 package it.unibo.distributedfrp.samples
 
 import it.unibo.distributedfrp.simulation.environment.{Environment, EnvironmentWithTags}
-import it.unibo.distributedfrp.simulation.incarnation.{SimulationIncarnation, CommonSensors}
-import it.unibo.distributedfrp.simulation.simulator.LegacySimulator
+import it.unibo.distributedfrp.simulation.incarnation.{CommonSensors, SimulationIncarnation}
+import it.unibo.distributedfrp.simulation.simulator.legacy.LegacySimulator
 import it.unibo.distributedfrp.utils.Liftable.*
 
 @main def reEvaluationSample(): Unit =

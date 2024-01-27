@@ -2,7 +2,7 @@ package it.unibo.distributedfrp.samples
 
 import it.unibo.distributedfrp.simulation.environment.{Environment, EnvironmentWithTags}
 import it.unibo.distributedfrp.simulation.incarnation.{CommonAlgorithms, CommonSensors, SimulationIncarnation}
-import it.unibo.distributedfrp.simulation.simulator.LegacySimulator
+import it.unibo.distributedfrp.simulation.simulator.legacy.LegacySimulator
 import it.unibo.distributedfrp.utils.Liftable.*
 import nz.sodium.Cell
 

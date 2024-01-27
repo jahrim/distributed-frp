@@ -1,17 +1,15 @@
 package it.unibo.distributedfrp.core.convergence
 
 /** A [[ConvergenceTest]] for the withNeighbor construct. */
-class WithNeighborTest extends ConvergenceTest.WithDefaults:
+class WithNeighborTest extends ConvergenceTest.Defaults.WithStepSimulator:
   private val WithNeighbor = symbol("withNeighbor")
 
-  import defaultSimulator.incarnation.{*, given}
+  import DefaultSimulator.incarnation.{*, given}
 
-  private def collectNeighborsIncluding(neighborId: DeviceId): Flow[Set[DeviceId]] =
-    nbr(mid).map(_.withNeighbor(neighborId, neighborId).values.toSet)
   WithNeighbor should
     "include the computation of a specific device from the " +
     "computations of the neighboring devices" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = collectNeighborsIncluding(neighborId = 100),
     limit = Map(
       0 -> Set(0, 1, 3, 4, 100),       1 -> Set(0, 1, 2, 3, 4, 5, 100),          2 -> Set(1, 2, 4, 5, 100),
@@ -20,12 +18,10 @@ class WithNeighborTest extends ConvergenceTest.WithDefaults:
     ),
   )
 
-  private def collectMaskedNeighbors(maskedId: DeviceId, mask: DeviceId): Flow[Set[DeviceId]] =
-    nbr(mid).map(_.withNeighbor(maskedId, mask).values.toSet)
   it should
     "set the computation of a specific device from the " +
     "computations of the neighboring devices, if already present" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = collectMaskedNeighbors(maskedId = 4, mask = 100),
     limit = Map(
       0 -> Set(0, 1, 3, 100),       1 -> Set(0, 1, 2, 3, 100, 5),          2 -> Set(1, 2, 100, 5),

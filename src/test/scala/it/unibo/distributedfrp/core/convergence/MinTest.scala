@@ -1,14 +1,16 @@
 package it.unibo.distributedfrp.core.convergence
 
+import it.unibo.distributedfrp.utils.Liftable.map
+import it.unibo.distributedfrp.utils.UpperBounded
+
 /** A [[ConvergenceTest]] for the min construct. */
-class MinTest extends ConvergenceTest.WithDefaults:
+class MinTest extends ConvergenceTest.Defaults.WithStepSimulator:
   private val Min = symbol("min")
 
-  import defaultSimulator.incarnation.{*, given}
+  import DefaultSimulator.incarnation.{*, given}
 
-  private def minNeighborId: Flow[Int] = nbr(mid).min
   Min should "evaluate the minimum of the computations of the neighboring devices" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = minNeighborId,
     limit = Map(
       0 -> 0, 1 -> 0, 2 -> 1,
@@ -22,8 +24,9 @@ class MinTest extends ConvergenceTest.WithDefaults:
     override def upperBound: CustomId[Int] = CustomId[Int](Int.MaxValue)
     override def compare(x: CustomId[Int], y: CustomId[Int]): Int = summon[Ordering[Int]].compare(x.value, y.value)
   private def minNeighborCustomId: Flow[CustomId[Int]] = nbr(mid.map(CustomId.apply)).min
+
   it should "evaluate the minimum for a custom type given its lower bound" in convergenceTest(
-    simulator = defaultSimulator,
+    simulator = DefaultSimulator,
     flow = minNeighborCustomId,
     limit = Map(
       0 -> CustomId(0), 1 -> CustomId(0), 2 -> CustomId(1),
