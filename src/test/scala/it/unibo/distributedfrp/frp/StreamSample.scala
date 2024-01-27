@@ -1,7 +1,7 @@
 package it.unibo.distributedfrp.frp
 
-import it.unibo.distributedfrp.frp.StreamExtension.*
 import it.unibo.distributedfrp.frp.FiniteStreamExtension.*
+import it.unibo.distributedfrp.frp.StreamExtension.*
 import it.unibo.distributedfrp.frp.StreamSinkExtension.*
 import it.unibo.distributedfrp.test.utils.mock.clock.MockClockScheduler
 
@@ -22,15 +22,13 @@ trait StreamSample[+SS](val streams: SS):
 
 /** Companion object of [[StreamSample]]. */
 object StreamSample:
-  import nz.sodium.StreamSink as Sink
-
   /**
    * @param events the specified events.
    * @return a new [[StreamSample]] of a single [[Stream Stream]]
    *         generating the specified events.
    */
   def singleStreamSample[A](events: A*): StreamSample[Stream[A]] =
-    new StreamSample(Sink[A]()):
+    new StreamSample(StreamSink[A]()):
       private val s = streams
       override def generateEvents(): Unit = s.!(events*)
 
@@ -47,7 +45,7 @@ object StreamSample:
   def timedSingleStreamSample[A](events: (A, FiniteDuration)*)(
     using scheduler: MockClockScheduler
   ): StreamSample[Stream[A]] =
-    new StreamSample(Sink[A]()):
+    new StreamSample(StreamSink[A]()):
       private val s = streams
       events.foreach((e, t) => scheduler.scheduleAt(t){ s ! e })
       override def generateEvents(): Unit = scheduler.executePending()
@@ -96,7 +94,7 @@ object StreamSample:
    * }}}
    */
   def bistreamBitypedSample: StreamSample[(Stream[Int], Stream[String])] =
-    new StreamSample((Sink[Int](), Sink[String]())):
+    new StreamSample((StreamSink[Int](), StreamSink[String]())):
       private val (s1, s2) = streams
       override def generateEvents(): Unit =
         s1 ! (0, 1, 2)
@@ -112,7 +110,7 @@ object StreamSample:
    * }}}
    */
   def tristreamUnitypedSample: StreamSample[(Stream[String], Stream[String], Stream[String])] =
-    new StreamSample((Sink[String](), Sink[String](), Sink[String]())):
+    new StreamSample((StreamSink[String](), StreamSink[String](), StreamSink[String]())):
       private val (s1, s2, s3) = streams
       override def generateEvents(): Unit =
         s1 ! ("a", "b")
@@ -130,7 +128,7 @@ object StreamSample:
    * }}}
    */
   def tristreamTritypedSample: StreamSample[(Stream[Int], Stream[String], Stream[Boolean])] =
-    new StreamSample((Sink[Int](), Sink[String](), Sink[Boolean]())):
+    new StreamSample((StreamSink[Int](), StreamSink[String](), StreamSink[Boolean]())):
       private val (s1, s2, s3) = streams
       override def generateEvents(): Unit =
         s1 ! (0, 1)
@@ -147,7 +145,7 @@ object StreamSample:
    * }}}
    */
   def bistreamBitypedLongSample: StreamSample[(Stream[Int], Stream[String])] =
-    new StreamSample((Sink[Int](), Sink[String]())):
+    new StreamSample((StreamSink[Int](), StreamSink[String]())):
       private val (s1, s2) = streams
       override def generateEvents(): Unit =
         s1 ! (0, 1, 2)
@@ -166,7 +164,7 @@ object StreamSample:
    * }}}
    */
   def tristreamUnitypedLongSample: StreamSample[(Stream[String], Stream[String], Stream[String])] =
-    new StreamSample((Sink[String](), Sink[String](), Sink[String]())):
+    new StreamSample((StreamSink[String](), StreamSink[String](), StreamSink[String]())):
       private val (s1, s2, s3) = streams
       override def generateEvents(): Unit =
         s1 ! ("a", "b", "c")
@@ -188,7 +186,7 @@ object StreamSample:
    * }}}
    */
   def tristreamTritypedLongSample: StreamSample[(Stream[Int], Stream[String], Stream[Boolean])] =
-    new StreamSample((Sink[Int](), Sink[String](), Sink[Boolean]())):
+    new StreamSample((StreamSink[Int](), StreamSink[String](), StreamSink[Boolean]())):
       private val (s1, s2, s3) = streams
       override def generateEvents(): Unit =
         s1 ! (0, 1, 2)
@@ -224,7 +222,7 @@ object StreamSample:
    * }}}
    */
   def finiteTristreamSample: StreamSample[(FiniteStream[Int], Stream[String], Stream[Int])] =
-    new StreamSample((Sink[FiniteEvent[Int]](), Sink[String](), Sink[Int]())):
+    new StreamSample((StreamSink[FiniteEvent[Int]](), StreamSink[String](), StreamSink[Int]())):
       private val (s1, s2, s3) = streams
       override def generateEvents(): Unit =
         s1 ! (E(0), E(1))

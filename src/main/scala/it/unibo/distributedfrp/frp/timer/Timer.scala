@@ -3,7 +3,6 @@ package it.unibo.distributedfrp.frp.timer
 import it.unibo.distributedfrp.frp.StreamExtension.Stream
 import it.unibo.distributedfrp.frp.StreamSinkExtension.StreamSink
 import it.unibo.distributedfrp.frp.timer.Timer.Tick
-import nz.sodium
 
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.concurrent.duration.FiniteDuration
@@ -47,7 +46,7 @@ object Timer:
     override val duration: FiniteDuration,
     scheduler: ScheduledExecutorService
   ) extends Timer:
-    private val _ticks: StreamSink[Tick] = sodium.StreamSink[Tick]()
+    private val _ticks: StreamSink[Tick] = StreamSink[Tick]()
     private var _pendingTick: ScheduledFuture[?] = this.scheduleTick()
 
     override def ticks: Stream[Tick] = this._ticks

@@ -44,6 +44,9 @@ object StreamExtension:
 
   /** Companion object of [[Stream Stream]]. */
   object Stream:
+    /** @return a new [[Stream Stream]] that never fires events. */
+    def never[A]: Stream[A] = sodium.Stream[A]()
+
     /**
      * Create a [[Stream Stream]] of all the events produced by the specified
      * [[Stream Stream]]s with the same type.

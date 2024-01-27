@@ -2,12 +2,16 @@ package it.unibo.distributedfrp.frp
 
 import it.unibo.distributedfrp.frp.StreamExtension.Stream
 import nz.sodium
+
 import scala.annotation.targetName
 
 /** An extension for [[sodium.StreamSink StreamSink]]s. */
 object StreamSinkExtension:
   /** A [[Stream Stream]] to which the user can push events. */
   type StreamSink[A] = sodium.StreamSink[A]
+
+  /** Companion object of [[StreamSink]]. */
+  object StreamSink { def apply[A](): StreamSink[A] = sodium.StreamSink[A]() }
 
   extension[A] (self: StreamSink[A]) {
     /**

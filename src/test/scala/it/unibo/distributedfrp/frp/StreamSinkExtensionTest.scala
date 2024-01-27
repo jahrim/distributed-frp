@@ -8,8 +8,6 @@ import it.unibo.distributedfrp.frp.StreamSinkExtension.*
 class StreamSinkExtensionTest extends AbstractTest:
   private val SendShortcut = symbol("!")
 
-  import nz.sodium.StreamSink as Sink
-
   /**
    * As [[Stream.monitor]], but returns a pair containing the
    * [[Stream Stream]] itself as first parameter and its
@@ -22,15 +20,15 @@ class StreamSinkExtensionTest extends AbstractTest:
     (stream, Stream.monitor(stream, memory))
 
   SendShortcut should "make a stream sink produce a sequence of events" in {
-    val (sink, sinkMonitor) = monitor(Sink[Int]())
+    val (sink, sinkMonitor) = monitor(StreamSink[Int]())
     sink ! 0
     sink ! (1, 2, 3)
     sinkMonitor.eventLog shouldEqual Seq(0, 1, 2, 3)
   }
 
   it should "make a pair of streams produce a sequence of pairs of simultaneous events" in {
-    val (sink1, monitor1) = monitor(Sink[Int]())
-    val (sink2, monitor2) = monitor(Sink[String]())
+    val (sink1, monitor1) = monitor(StreamSink[Int]())
+    val (sink2, monitor2) = monitor(StreamSink[String]())
     val (_, andMonitor) = monitor(sink1 and sink2)
     sink1 ! (1, 2, 3)
     sink2 ! ("a", "b", "c")
@@ -42,9 +40,9 @@ class StreamSinkExtensionTest extends AbstractTest:
 
   it should "make a triplet of streams produce a sequence of triplets of simultaneous events" in {
     def flattenToTuple3[A,B,C](pair: ((A,B),C)): (A,B,C) = (pair._1._1, pair._1._2, pair._2)
-    val (sink1, monitor1) = monitor(Sink[Int]())
-    val (sink2, monitor2) = monitor(Sink[String]())
-    val (sink3, monitor3) = monitor(Sink[Boolean]())
+    val (sink1, monitor1) = monitor(StreamSink[Int]())
+    val (sink2, monitor2) = monitor(StreamSink[String]())
+    val (sink3, monitor3) = monitor(StreamSink[Boolean]())
     val (_, monitor12) = monitor(sink1 and sink2)
     val (_, monitor13) = monitor(sink1 and sink3)
     val (_, monitor23) = monitor(sink2 and sink3)

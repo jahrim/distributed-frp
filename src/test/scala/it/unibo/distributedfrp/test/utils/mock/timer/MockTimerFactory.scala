@@ -25,7 +25,7 @@ object MockTimerFactory:
     override val duration: FiniteDuration,
     scheduler: MockClockScheduler
   ) extends Timer:
-    private val _ticks: StreamSink[Tick] = sodium.StreamSink[Tick]()
+    private val _ticks: StreamSink[Tick] = StreamSink[Tick]()
     private var _pendingTick: PendingTask[?] = this.scheduleTick()
     override def ticks: Stream[Tick] = this._ticks
     override def reset(): this.type =
