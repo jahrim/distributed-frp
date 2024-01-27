@@ -54,6 +54,20 @@ trait ConvergenceSimulator:
 /** Companion object of [[ConvergenceSimulator]]. */
 object ConvergenceSimulator:
   /**
+   * The [[concurrent.ConcurrentSimulator ConcurrentSimulator]] implementation
+   * of a [[ConvergenceSimulator ConvergenceSimulator]].
+   */
+  trait ConcurrentSimulator extends ConvergenceSimulator with concurrent.ConcurrentSimulator:
+    import incarnation.{*, given}
+    override def computeLimit[A](flow: Flow[A])(using configuration: Configuration[A]): Future[CollectiveResultMap[A]] =
+      given ExecutionContext = configuration.executor
+      val simulation = this.simulation(flow)
+      val computation = simulation.computedByAll
+      val computationMonitor = Stream.monitor(computation, memory = 1)
+      simulation.start()
+      simulation.termination.map(_ => computationMonitor.eventLog.lastOption.getOrElse(Map()))
+
+  /**
    * The [[step.StepSimulator StepSimulator]] implementation of a
    * [[ConvergenceSimulator ConvergenceSimulator]].
    */
