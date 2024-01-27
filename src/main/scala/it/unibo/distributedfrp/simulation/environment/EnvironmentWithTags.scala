@@ -6,9 +6,6 @@ import nz.sodium.Cell
 
 /** An [[Environment]] where devices can be tagged with certain information. */
 trait EnvironmentWithTags extends Environment:
-  protected val environment: Environment
-  export environment.*
-
   /**
    * @param tag the specified tag.
    * @return a [[Cell]] of all the devices tagged with the specified tag.
@@ -72,8 +69,10 @@ object EnvironmentWithTags:
     BasicEnvironmentWithTags(environment)
 
   /** Basic implementation of [[EnvironmentWithTags]]. */
-  private case class BasicEnvironmentWithTags(override protected val environment: Environment)
+  private case class BasicEnvironmentWithTags(environment: Environment)
     extends EnvironmentWithTags:
+    export environment.*
+
     private val tagsSink: IncrementalCellSink[Map[Any, Set[Int]]] = IncrementalCellSink(Map.empty[Any, Set[Int]])
     override def withTag(tag: Any): Cell[Set[Int]] = this.tagsSink.cell.map(_.getOrElse(tag, Set.empty[Int]))
     override def setTag(tag: Any, devices: Set[Int]): this.type =
