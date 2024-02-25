@@ -50,7 +50,7 @@ trait SimulationComponent:
      *       the [[Simulation Simulation]].
      */
     final def computed: Stream[CollectiveResultMap[A]] = this._cachedComputed
-    private lazy val _cachedComputed: Stream[CollectiveResultMap[A]] = this.exported.map(_.map(_ -> _.root))
+    private lazy val _cachedComputed: Stream[CollectiveResultMap[A]] = this.exported.map(_.asCollectiveResultMap)
 
     /**
      * @param deviceId the specified id.
@@ -84,7 +84,7 @@ trait SimulationComponent:
      *       all the results generated so far by all the devices in the [[Simulation Simulation]].
      */
     final def computedByAll: Stream[CollectiveResultMap[A]] = this._cachedComputedByAll
-    private lazy val _cachedComputedByAll: Stream[CollectiveResultMap[A]] = this.exportedByAll.map(_.map(_ -> _.root))
+    private lazy val _cachedComputedByAll: Stream[CollectiveResultMap[A]] = this.computed.fold(Map())(_ ++ _)
 
     /** @return true if this [[Simulation Simulation]] is running, false otherwise. */
     final def isRunning: Boolean = synchronized { this._started && !this._stopped }
