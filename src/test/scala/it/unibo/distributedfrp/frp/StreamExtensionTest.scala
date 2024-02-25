@@ -11,7 +11,7 @@ import scala.concurrent.duration.*
 class StreamExtensionTest extends StreamSampleTest:
   private val Monitor = symbol("monitor")
   private val Defined = symbol("defined")
-  private val CollectLazy = symbol("collectLazy")
+  private val Collect = symbol("collect")
   private val Fold = symbol("fold")
   private val ZipWithIndex = symbol("zipWithIndex")
   private val ZipWithTime = symbol("zipWithTime")
@@ -56,12 +56,12 @@ class StreamExtensionTest extends StreamSampleTest:
     expectation = Seq(1, 2, 3),
   )
 
-  CollectLazy should s"behave as the legacy `collectLazy`" in {
+  Collect should s"behave as the legacy `collect`" in {
     val (sample, s) = loadSample(intSample)
     val collectMonitor =
       Stream.monitor(s.collect(0)((n, s) => { val ns = n + s; (ns, ns) }))
     val legacyCollectMonitor =
-      Stream.monitor(s.collectLazy(sodium.Lazy(0), (n, s) => { val ns = n + s; sodium.Tuple2(ns, ns) }))
+      Stream.monitor(s.collect(0, (n, s) => { val ns = n + s; sodium.Tuple2(ns, ns) }))
     sample.generateEvents()
     collectMonitor.eventLog shouldEqual Seq(0, 1, 3, 6, 10, 15, 21, 28, 36, 45)
     collectMonitor.eventLog shouldEqual legacyCollectMonitor.eventLog

@@ -4,7 +4,7 @@ package it.unibo.distributedfrp.simulation.simulator
  * A mixin for providing the concept of configuration
  * for a simulation to a [[Simulator Simulator]].
  */
-trait SimulationConfiguration:
+trait SimulationConfigurationComponent:
   self: Simulator =>
 
   import incarnation.{*, given}

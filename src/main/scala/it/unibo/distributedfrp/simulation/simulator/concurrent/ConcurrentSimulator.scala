@@ -48,6 +48,6 @@ trait ConcurrentSimulator extends Simulator with ConcurrentSimulator.Components:
 object ConcurrentSimulator:
   /** A mixin for providing the components of a [[ConcurrentSimulator]] to a [[Simulator Simulator]]. */
   trait Components
-    extends HaltPolicy
-       with ConcurrentSimulationConfiguration:
+    extends HaltPolicyComponent
+       with ConcurrentSimulationConfigurationComponent:
     self: Simulator =>

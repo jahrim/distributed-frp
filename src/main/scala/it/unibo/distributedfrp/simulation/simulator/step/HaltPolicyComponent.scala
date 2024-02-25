@@ -9,8 +9,8 @@ import scala.util.Try
  * A mixin for providing the concept of a policy for terminating
  * a step-by-step simulation to a [[Simulator Simulator]].
  */
-trait HaltPolicy:
-  self: Simulator with StepSimulation =>
+trait HaltPolicyComponent:
+  self: Simulator with StepSimulationComponent =>
   import incarnation.{*, given}
 
   /**

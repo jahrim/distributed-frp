@@ -30,7 +30,7 @@ trait StepSimulator extends Simulator with StepSimulator.Components:
           deviceId -> SimulationContext(deviceId, neighbors.cell, environment)
         )
       private val _steps: StreamSink[CollectiveExportMap[A]] = StreamSink()
-      private val _messageScheduler: MessageScheduler[A] = MessageScheduler(this._deviceMap)
+      private val _exportScheduler: ExportScheduler[A] = ExportScheduler(this._deviceMap)
       private var _listeners: Iterable[nz.sodium.Listener] = Seq()
 
       override def configuration: Configuration[A] = underlyingConfiguration
@@ -41,7 +41,7 @@ trait StepSimulator extends Simulator with StepSimulator.Components:
             this._deviceMap.map((deviceId, device) =>
               flow.run(Seq.empty)(using device).listen(deviceExport =>
                 logger.logActivity(s"Schedule: ${deviceId -> deviceExport.root}") {
-                  this._messageScheduler.schedule(deviceId -> deviceExport)
+                  this._exportScheduler.schedule(deviceId -> deviceExport)
                 }
               )
             )
@@ -54,14 +54,14 @@ trait StepSimulator extends Simulator with StepSimulator.Components:
       override def asyncNext()(using executor: ExecutionContext): Future[Unit] =
         logger.logActivity("Continue simulation") {
           if this.isRunning then
-            this._messageScheduler.next(currentExport =>
+            this._exportScheduler.next(currentExport =>
               currentExport.foreach((sender, message) => exportToNeighbors(sender, message))
               exportToUser(currentExport)
             )
           else
             Future.failed(IllegalStateException("Cannot continue a simulation that is not running."))
         }
-      override def ready: Observable[Unit] = this._messageScheduler.ready
+      override def ready: Observable[Unit] = this._exportScheduler.ready
 
       /**
        * Send the specified message from the specified sender to its neighbors.
@@ -101,9 +101,9 @@ trait StepSimulator extends Simulator with StepSimulator.Components:
 object StepSimulator:
   /** A mixin for providing the components of a [[StepSimulator]] to a [[Simulator Simulator]]. */
   trait Components
-    extends StepSimulation
-       with MessageScheduler
-       with AsyncStepSimulation
-       with HaltPolicy
-       with StepSimulationConfiguration:
+    extends StepSimulationComponent
+       with ExportSchedulerComponent
+       with AsyncStepSimulationComponent
+       with HaltPolicyComponent
+       with StepSimulationConfigurationComponent:
     self: Simulator =>

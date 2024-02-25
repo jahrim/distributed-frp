@@ -11,18 +11,18 @@ import scala.util.Try
  * A mixin for providing the concept of a [[Scheduler]] for the device
  * messages in a simulation to a [[Simulator Simulator]].
  */
-trait MessageScheduler:
+trait ExportSchedulerComponent:
   self: Simulator =>
   import incarnation.{*, given}
 
   /**
-   * A thread-safe [[Scheduler]] for device messages, managing the order by
+   * A thread-safe [[Scheduler]] for device exports, managing the order by
    * which device messages are handled in a simulation.
    *
    * @param devices the devices in the simulation.
    * @tparam A the type of results produced by the simulation.
    */
-  protected class MessageScheduler[A](devices: Map[DeviceId, Context]) extends Scheduler[(DeviceId, Export[A])]:
+  protected class ExportScheduler[A](devices: Map[DeviceId, Context]) extends Scheduler[(DeviceId, Export[A])]:
     private case class Message(sender: DeviceId, content: Export[A], receipt: Promise[Unit])
 
     private object ReadyEventBus extends EventBus[Unit]

@@ -45,6 +45,6 @@ object Simulator:
 
   /** A mixin providing the components of a [[Simulator]]. */
   trait Components
-    extends SimulationConfiguration
-       with Simulation:
+    extends SimulationConfigurationComponent
+       with SimulationComponent:
     self: Simulator =>

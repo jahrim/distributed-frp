@@ -60,10 +60,13 @@ trait ConvergenceTest extends AbstractTest:
     executor: ExecutionContext = Defaults.executor,
     configurationSupplier: () => simulator.Configuration[A]
   ): Test =
+    import simulator.*
     repeatTest(repetitions, timeout){
       Future.delegate {
-        given simulator.Configuration[A] = configurationSupplier()
-        simulator.computeLimit(flow).map(actualLimit => checkConvergence(actualLimit, limit, expectation))
+        given Configuration[A] = configurationSupplier()
+        simulator.computeLimit(flow)
+          .map(_.asCollectiveResultMap)
+          .map(actualLimit => checkConvergence(actualLimit, limit, expectation))
       }
     }
 
@@ -97,15 +100,18 @@ trait ConvergenceTest extends AbstractTest:
     executor: ExecutionContext = Defaults.executor,
     configurationSupplier: () => simulator.Configuration[A]
   ): Test =
+    import simulator.*
     repeatTest(repetitions, timeout) {
       Future.delegate {
-        simulator.computeLimits(flows *).map(limits =>
-          limits.headOption.foreach { expectedLimit =>
-            forEvery(limits.zipWithIndex) { (actualLimit, index) =>
-              if index > 0 then checkConvergence(actualLimit, expectedLimit, expectation)
+        simulator.computeLimits(flows *)
+          .map(_.map(_.asCollectiveResultMap))
+          .map(limits =>
+            limits.headOption.foreach { expectedLimit =>
+              forEvery(limits.zipWithIndex) { (actualLimit, index) =>
+                if index > 0 then checkConvergence(actualLimit, expectedLimit, expectation)
+              }
             }
-          }
-        )
+          )
       }
     }
 

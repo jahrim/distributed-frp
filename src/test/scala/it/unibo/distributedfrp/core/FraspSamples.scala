@@ -57,8 +57,7 @@ trait FraspSamples:
     )
 
   /** Collect the neighbors of each device, sorted by id. */
-  def collectSortedNeighbors: Flow[Seq[DeviceId]] =
-    nbr(mid).map(_.values.toSeq.sorted)
+  def collectSortedNeighbors: Flow[Seq[DeviceId]] = nbr(mid).map(_.values.toSeq.sorted)
 
   /**
    * Collect the neighbors of each device sorted by id and split the network using the specified boundary.

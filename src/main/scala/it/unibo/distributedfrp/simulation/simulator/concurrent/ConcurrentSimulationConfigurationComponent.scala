@@ -9,8 +9,8 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
  * A mixin for providing the concept of configuration for concurrent
  * simulation to a [[Simulator Simulator]].
  */
-trait ConcurrentSimulationConfiguration:
-  self: Simulator with HaltPolicy =>
+trait ConcurrentSimulationConfigurationComponent:
+  self: Simulator with HaltPolicyComponent =>
   import incarnation.{*, given}
 
   /**

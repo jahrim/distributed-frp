@@ -57,8 +57,8 @@ class GradientTest extends ConvergenceTest.Defaults.WithStepSimulator:
       ).map(_.round(precision = 2))
     },
     limit = Map(
-       0 -> source,  1 -> 1,     2 -> obstacle,  3 -> unreachable, 4 -> unreachable,
-       5 -> 1,       6 -> 1.41,  7 -> obstacle,  8 -> obstacle,    9 -> obstacle,
+       0 -> source,  1 -> 1,     2 -> obstacle,  3 -> unreachable,  4 -> unreachable,
+       5 -> 1,       6 -> 1.41,  7 -> obstacle,  8 -> obstacle,     9 -> obstacle,
       10 -> 2,      11 -> 2.41, 12 -> obstacle, 13 -> 4.41,        14 -> 4.83,
       15 -> 1,      16 -> 1.41, 17 -> obstacle, 18 -> 3.41,        19 -> 4.41,
       20 -> source, 21 -> 1,    22 -> 2,        23 -> 3,           24 -> 4,

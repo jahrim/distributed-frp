@@ -9,8 +9,8 @@ import scala.concurrent.{ExecutionContext, Future}
  * A mixin for providing the concept of asynchronous thread-safe
  * step-by-step simulation to a [[Simulator Simulator]].
  */
-trait AsyncStepSimulation:
-  self: Simulator with StepSimulation =>
+trait AsyncStepSimulationComponent:
+  self: Simulator with StepSimulationComponent =>
 
   /** An asynchronous thread-safe [[StepSimulation]]. */
   trait AsyncStepSimulation[A] extends StepSimulation[A]:

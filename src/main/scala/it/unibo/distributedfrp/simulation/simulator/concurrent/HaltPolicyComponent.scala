@@ -11,7 +11,7 @@ import scala.util.Try
  * A mixin for providing the concept of a policy for terminating
  * a concurrent simulation to a [[Simulator Simulator]].
  */
-trait HaltPolicy:
+trait HaltPolicyComponent:
   self: Simulator =>
   import incarnation.{*, given}
 

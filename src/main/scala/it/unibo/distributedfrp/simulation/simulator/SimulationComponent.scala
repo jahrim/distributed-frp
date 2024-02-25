@@ -6,14 +6,15 @@ import it.unibo.distributedfrp.utils.Cache
 import scala.concurrent.{Future, Promise}
 
 /** A mixin for providing the concept of simulation to a [[Simulator Simulator]]. */
-trait Simulation:
-  self: Simulator with SimulationConfiguration =>
+trait SimulationComponent:
+  self: Simulator =>
   import incarnation.{*, given}
 
   /** The [[Export Export]]s of a group of [[Context Device]]s. */
   type CollectiveExportMap[+A] = Map[DeviceId, Export[A]]
   /** The results computed by a group of [[Context Device]]s. */
   type CollectiveResultMap[+A] = Map[DeviceId, A]
+  extension[A](self: CollectiveExportMap[A]){ def asCollectiveResultMap: CollectiveResultMap[A] = self.map(_ -> _.root) }
 
   /**
    * A simulation that executes a [[Flow Flow]], letting the user observe its execution.

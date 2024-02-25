@@ -4,7 +4,7 @@ import it.unibo.distributedfrp.frp.StreamExtension.Stream
 import it.unibo.distributedfrp.simulation.simulator.Simulator
 
 /** A mixin for providing the concept of step-by-step simulation to a [[Simulator Simulator]]. */
-trait StepSimulation:
+trait StepSimulationComponent:
   self: Simulator =>
   import incarnation.{*, given}
 

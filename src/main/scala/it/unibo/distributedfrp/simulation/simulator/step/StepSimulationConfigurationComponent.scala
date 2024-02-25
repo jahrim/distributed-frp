@@ -7,8 +7,8 @@ import it.unibo.distributedfrp.utils.Logger
  * A mixin for providing the concept of configuration for a step-by-step
  * simulation to a [[Simulator Simulator]].
  */
-trait StepSimulationConfiguration:
-  self: Simulator with StepSimulation with HaltPolicy =>
+trait StepSimulationConfigurationComponent:
+  self: Simulator with StepSimulationComponent with HaltPolicyComponent =>
   import incarnation.{*, given}
 
   /**
