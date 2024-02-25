@@ -53,13 +53,13 @@ object ExecutionContextSpy:
 
     /** Callback executed before the execution of each task. */
     private def beforeExecute(): Unit = synchronized {
-      this._busyThreads = this._busyThreads + Thread.currentThread().threadId()
+      this._busyThreads = this._busyThreads + Thread.currentThread().getId
       this._maxConcurrency = math.max(this._maxConcurrency, this._busyThreads.size)
     }
 
     /** Callback executed after the execution of each task. */
     private def afterExecute(): Unit = synchronized {
-      this._busyThreads = this._busyThreads - Thread.currentThread().threadId()
+      this._busyThreads = this._busyThreads - Thread.currentThread().getId
       this._pendingTasks = this._pendingTasks - 1
       this.notifyAll()
     }
